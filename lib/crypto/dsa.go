@@ -2,6 +2,8 @@ package crypto
 
 import (
   "crypto/dsa"
+  "crypto/sha1"
+  "crypto/rand"
   "io"
   "math/big"
 )
@@ -50,7 +52,7 @@ func DSAGenerate(priv *dsa.PrivateKey, rand io.Reader) error {
 }
 
 // create i2p dsa public key given its public component
-func DSAPublicKey(Y *big.Int) *dsa.PublicKey {
+func createDSAPublicKey(Y *big.Int) *dsa.PublicKey {
   return &dsa.PublicKey{
     Parameters: param,
     Y: Y,
@@ -58,7 +60,7 @@ func DSAPublicKey(Y *big.Int) *dsa.PublicKey {
 }
 
 // createa i2p dsa private key given its public component
-func DSAPrivkey(X *big.Int) *dsa.PrivateKey {
+func createDSAPrivkey(X *big.Int) *dsa.PrivateKey {
   Y := new(big.Int)
   Y.Exp(dsag, X, dsap)
   return &dsa.PrivateKey{
@@ -68,4 +70,83 @@ func DSAPrivkey(X *big.Int) *dsa.PrivateKey {
     },
     X: X,
   }
+}
+
+
+type DSAVerifier struct {
+  k *dsa.PublicKey
+}
+
+type DSAPublicKey [128]byte
+
+// create a new dsa verifier
+func (k DSAPublicKey) NewVerifier() (v Verifier, err error) {
+  v = &DSAVerifier{
+    k: createDSAPublicKey(new(big.Int).SetBytes(k[:])),
+  }
+  return
+}
+
+// verify data with a dsa public key
+func (v *DSAVerifier) Verify(data, sig []byte) (err error) {
+  h := sha1.Sum(data)
+  err = v.VerifyHash(h[:], sig)
+  return
+}
+
+// verify hash of data with a dsa public key
+func (v *DSAVerifier) VerifyHash(h, sig []byte) (err error) {
+  if len(sig) == 40 {
+    r := new(big.Int).SetBytes(sig[:20])
+    s := new(big.Int).SetBytes(sig[20:])
+    if dsa.Verify(v.k, h, r, s) {
+      // valid signature
+    } else {
+      // invalid signature
+      err = ErrInvalidSignature
+    }
+  } else {
+    err = ErrBadSignatureSize
+  }
+  return
+}
+
+
+func (k DSAPublicKey) Len() int {
+  return len(k)
+}
+
+type DSASigner struct {
+  k *dsa.PrivateKey
+}
+
+type DSAPrivateKey [20]byte
+
+// create a new dsa signer
+func (k DSAPrivateKey) NewSigner() (s Signer, err error) {
+  s = &DSASigner{
+    k: createDSAPrivkey(new (big.Int).SetBytes(k[:])),
+  }
+  return
+}
+
+func (ds *DSASigner) Sign(data []byte) (sig []byte, err error) {
+  h := sha1.Sum(data)
+  sig, err = ds.SignHash(h[:])
+  return
+}
+
+func (ds *DSASigner) SignHash(h []byte) (sig []byte, err error) {
+  var r, s *big.Int
+  r, s, err = dsa.Sign(rand.Reader, ds.k, h)
+  if err == nil {
+    sig = make([]byte, 40)
+    copy(sig, r.Bytes())
+    copy(sig[20:], s.Bytes())
+  }
+  return
+}
+
+func (k DSAPrivateKey) Len() int {
+  return len(k)
 }

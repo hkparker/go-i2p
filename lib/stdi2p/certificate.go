@@ -2,6 +2,7 @@ package stdi2p
 
 import (
   "encoding/binary"
+  "github.com/bounce-chat/go-i2p/lib/crypto"
 )
 
 const (
@@ -63,28 +64,29 @@ func (c KeyCert) Data() []byte {
 }
 
 // get the signing public key from this key cert
-func (c KeyCert) SigningPublicKey() (k SigningPublicKey) {
+func (c KeyCert) SigningPublicKey() (k crypto.SigningPublicKey) {
   data := c.Data()
   ktype := binary.BigEndian.Uint16(data[:2])
   // set data to be the key data now
   data = data[4:]
   // determine the key type
   if ktype == KEYCERT_SIGN_DSA_SHA1 {
-    var pk DSAPublicKey
+    var pk crypto.DSAPublicKey
     copy(pk[:], data[:pk.Len()])
     k = pk
   } else if ktype == KEYCERT_SIGN_P256 {
-    var pk ECP256PublicKey
+    var pk crypto.ECP256PublicKey
     copy(pk[:], data[:pk.Len()])
     k = pk
   } else if ktype == KEYCERT_SIGN_P384 {
-    var pk ECP384PublicKey
+    var pk crypto.ECP384PublicKey
     copy(pk[:], data[:pk.Len()])
     k = pk
   } else if ktype == KEYCERT_SIGN_P521 {
-    var pk ECP521PublicKey
+    var pk crypto.ECP521PublicKey
     copy(pk[:], data[:pk.Len()])
     k = pk
   }
+  // TODO: rsa/eddsa
   return 
 }

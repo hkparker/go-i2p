@@ -16,8 +16,8 @@ func TestElg(t *testing.T) {
     msg := make([]byte, 222)
       _, err := io.ReadFull(rand.Reader, msg)
     if err == nil {
-      pub := ElgamalPublicKey(k.Y.Bytes())
-      enc, err := NewElgamalEncryption(pub, rand.Reader)
+      pub := createElgamalPublicKey(k.Y.Bytes())
+      enc, err := createElgamalEncryption(pub, rand.Reader)
       if err == nil {
         emsg, err := enc.Encrypt(msg)
         if err == nil {

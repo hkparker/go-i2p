@@ -1,6 +1,7 @@
 package crypto
 
 import (
+  "crypto/rand"
   "crypto/sha256"
   "crypto/subtle"
   "errors"
@@ -92,7 +93,6 @@ type ElgamalEncryption struct {
   p, a, b1 *big.Int
 }
 
-// implements stdi2p.PublicEncryptionKey
 func (elg *ElgamalEncryption) Encrypt(data []byte) (enc []byte, err error) {
   return elg.EncryptPadding(data, true)
 }
@@ -125,7 +125,7 @@ func (elg *ElgamalEncryption) EncryptPadding(data []byte, zeroPadding bool) (enc
 }
 
 // create an elgamal public key from byte slice
-func ElgamalPublicKey(data []byte) (k *elgamal.PublicKey) {
+func createElgamalPublicKey(data []byte) (k *elgamal.PublicKey) {
   if len(data) == 256 {
     k = &elgamal.PublicKey{
       G: elgg,
@@ -137,7 +137,7 @@ func ElgamalPublicKey(data []byte) (k *elgamal.PublicKey) {
 }
 
 // create an elgamal private key from byte slice
-func ElgamalPrivateKey(data []byte) (k *elgamal.PrivateKey) {
+func createElgamalPrivateKey(data []byte) (k *elgamal.PrivateKey) {
   if len(data) == 256 {
     x := new(big.Int).SetBytes(data)
     y := new(big.Int).Exp(elgg, x, elgp)
@@ -154,7 +154,7 @@ func ElgamalPrivateKey(data []byte) (k *elgamal.PrivateKey) {
 }
 
 // create a new elgamal encryption session
-func NewElgamalEncryption(pub *elgamal.PublicKey, rand io.Reader) (enc *ElgamalEncryption, err error) {
+func createElgamalEncryption(pub *elgamal.PublicKey, rand io.Reader) (enc *ElgamalEncryption, err error) {
   kbytes := make([]byte, 256)
   k := new(big.Int)
   for err == nil {
@@ -172,5 +172,19 @@ func NewElgamalEncryption(pub *elgamal.PublicKey, rand io.Reader) (enc *ElgamalE
       b1: new(big.Int).Exp(pub.Y, k, pub.P),
     }
   }
+  return
+}
+
+
+type ElgPublicKey [256]byte
+type ElgPrivateKey [256]byte
+
+func (elg ElgPublicKey) Len() int {
+  return len(elg)
+}
+
+func (elg ElgPublicKey) NewEncrypter() (enc Encrypter, err error) {
+  k := createElgamalPublicKey(elg[:])
+  enc, err = createElgamalEncryption(k, rand.Reader)
   return
 }
