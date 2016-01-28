@@ -54,7 +54,7 @@ type elgDecrypter struct {
   k *elgamal.PrivateKey
 }
 
-func (elg elgDecrypter) Decrypt(data []byte) (dec []byte, err error) {
+func (elg *elgDecrypter) Decrypt(data []byte) (dec []byte, err error) {
   dec, err = elgamalDecrypt(elg.k , data, true) // TODO(psi): should this be true or false?
   return
 }
@@ -204,7 +204,7 @@ func (elg ElgPrivateKey) Len() int {
 }
 
 func (elg ElgPrivateKey) NewDecrypter() (dec Decrypter, err error) {
-  dec = elgDecrypter{
+  dec = &elgDecrypter{
     k: createElgamalPrivateKey(elg[:]),
   }
   return
