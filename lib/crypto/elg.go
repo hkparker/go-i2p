@@ -92,8 +92,12 @@ type ElgamalEncryption struct {
   p, a, b1 *big.Int
 }
 
+// implements stdi2p.PublicEncryptionKey
+func (elg *ElgamalEncryption) Encrypt(data []byte) (enc []byte, err error) {
+  return elg.EncryptPadding(data, true)
+}
 
-func (elg *ElgamalEncryption) Encrypt(data []byte, zeroPadding bool) (encrypted []byte, err error) {
+func (elg *ElgamalEncryption) EncryptPadding(data []byte, zeroPadding bool) (encrypted []byte, err error) {
   if len(data) > 222 {
     err = ElgEncryptTooBig
     return
