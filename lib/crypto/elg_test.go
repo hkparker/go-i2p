@@ -19,7 +19,7 @@ func TestElg(t *testing.T) {
       pub := ElgamalPublicKey(k.Y.Bytes())
       enc, err := NewElgamalEncryption(pub, rand.Reader)
       if err == nil {
-        emsg, err := enc.Encrypt(msg, true)
+        emsg, err := enc.Encrypt(msg)
         if err == nil {
           dec, err := ElgamelDecrypt(k, emsg, true)
           if err == nil {
