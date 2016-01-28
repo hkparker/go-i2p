@@ -23,5 +23,9 @@ func CreateRouter() (r *Router, err error) {
 
 // run i2p router mainloop
 func (r *Router) Run() {
-  r.ndb.Run()
+  // make sure the netdb is ready
+  err := r.ndb.Ensure(r.cfg.Bootstrap.LowPeerThreshold)
+  if err == nil {
+    // netdb ready
+  }
 }
