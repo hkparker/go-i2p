@@ -1,5 +1,6 @@
 package crypto
 
+// encrypts data
 type Encrypter interface {
   // encrypt a block of data
   // return encrypted block or nil and error if an error happened

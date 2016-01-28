@@ -21,7 +21,7 @@ func TestElg(t *testing.T) {
       if err == nil {
         emsg, err := enc.Encrypt(msg)
         if err == nil {
-          dec, err := ElgamelDecrypt(k, emsg, true)
+          dec, err := elgamalDecrypt(k, emsg, true)
           if err == nil {
             if ! bytes.Equal(dec, msg) {
               t.Logf("%q != %q", dec, msg)

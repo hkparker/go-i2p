@@ -50,8 +50,17 @@ func ElgamalGenerate(priv *elgamal.PrivateKey, rand io.Reader) (err error) {
   return
 }
 
+type elgDecrypter struct {
+  k *elgamal.PrivateKey
+}
+
+func (elg elgDecrypter) Decrypt(data []byte) (dec []byte, err error) {
+  dec, err = elgamalDecrypt(elg.k , data, true) // TODO(psi): should this be true or false?
+  return
+}
+
 // decrypt an elgamal encrypted message, i2p style
-func ElgamelDecrypt(priv *elgamal.PrivateKey, data []byte, zeroPadding bool) (decrypted []byte, err error) {
+func elgamalDecrypt(priv *elgamal.PrivateKey, data []byte, zeroPadding bool) (decrypted []byte, err error) {
   a := new(big.Int)
   b := new(big.Int)
   idx := 0
@@ -186,5 +195,17 @@ func (elg ElgPublicKey) Len() int {
 func (elg ElgPublicKey) NewEncrypter() (enc Encrypter, err error) {
   k := createElgamalPublicKey(elg[:])
   enc, err = createElgamalEncryption(k, rand.Reader)
+  return
+}
+
+
+func (elg ElgPrivateKey) Len() int {
+  return len(elg)
+}
+
+func (elg ElgPrivateKey) NewDecrypter() (dec Decrypter, err error) {
+  dec = elgDecrypter{
+    k: createElgamalPrivateKey(elg[:]),
+  }
   return
 }
