@@ -1,8 +1,8 @@
 package tunnel
 
 import (
-  "github.com/bounce-chat/go-i2p/lib/crypto"
-  "encoding/binary"
+	"encoding/binary"
+	"github.com/bounce-chat/go-i2p/lib/crypto"
 )
 
 type TunnelID uint32
@@ -11,10 +11,10 @@ type TunnelID uint32
 type TunnelMessage crypto.TunnelData
 
 func (tm TunnelMessage) ID() (tid TunnelID) {
-  tid = TunnelID(binary.BigEndian.Uint32(tm[:4]))
-  return
+	tid = TunnelID(binary.BigEndian.Uint32(tm[:4]))
+	return
 }
 
 func (tm TunnelMessage) IV() crypto.TunnelIV {
-  return tm[4:20]
+	return tm[4:20]
 }

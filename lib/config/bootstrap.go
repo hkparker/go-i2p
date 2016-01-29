@@ -1,6 +1,5 @@
 package config
 
-
 type BootstrapConfig struct {
-  LowPeerThreshold int
+	LowPeerThreshold int
 }

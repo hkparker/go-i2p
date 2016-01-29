@@ -4,7 +4,7 @@
 package base64
 
 import (
-  b64 "encoding/base64"
+	b64 "encoding/base64"
 )
 
 // i2p base64 encoding
@@ -12,6 +12,6 @@ var I2PEncoding *b64.Encoding = b64.NewEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcde
 
 // wrapper arround encoding for encoding to string
 func EncodeToString(data []byte) (str string) {
-  str = I2PEncoding.EncodeToString(data)
-  return
+	str = I2PEncoding.EncodeToString(data)
+	return
 }
