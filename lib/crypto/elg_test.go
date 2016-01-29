@@ -22,7 +22,9 @@ func TestElg(t *testing.T) {
 				if err == nil {
 					dec, err := elgamalDecrypt(k, emsg, true)
 					if err == nil {
-						if !bytes.Equal(dec, msg) {
+						if bytes.Equal(dec, msg) {
+							t.Logf("%q == %q", dec, msg)
+						} else {
 							t.Logf("%q != %q", dec, msg)
 							t.Fail()
 						}

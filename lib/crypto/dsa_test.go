@@ -1,27 +1,46 @@
 package crypto
 
 import (
-	"crypto/dsa"
-	"crypto/rand"
 	"testing"
 )
 
 func TestDSA(t *testing.T) {
-	rng := rand.Reader
-	kp := new(dsa.PrivateKey)
-	err := DSAGenerate(kp, rng)
+	var sk DSAPrivateKey
+	var pk DSAPublicKey
+	var err error
+	sk, err = sk.Generate()
 	if err == nil {
-		t.Logf("DSA Key Pair generated")
-	} else {
-		t.Logf("error while generating key: %s", err)
-		t.Fail()
+		zeros := 0 
+		for b, _ := range sk {
+			if b == 0 {
+				zeros ++
+			}
+		}
+		if zeros == len(sk) {
+			t.Logf("key generation yielded all zeros")
+			t.Fail()
+		}
+		pk, err = sk.Public()
+		if err == nil {
+			data := make([]byte, 512)
+			var sig []byte
+			var signer Signer
+			signer, err = sk.NewSigner()
+			if err == nil {
+				sig, err = signer.Sign(data)
+				if err == nil {
+					t.Logf("sig=%q", sig)
+					var verify Verifier
+					verify, err = pk.NewVerifier()
+					if err == nil {
+						err = verify.Verify(data, sig)
+					}
+				}
+			}
+		}
 	}
-	h := make([]byte, 20)
-	_, _, err = dsa.Sign(rng, kp, h)
-	if err == nil {
-		t.Log("signed")
-	} else {
-		t.Logf("error signing: %s", err)
+	if err != nil {
+		t.Logf("failed: %s", err.Error())
 		t.Fail()
 	}
 }

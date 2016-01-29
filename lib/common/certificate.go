@@ -38,15 +38,19 @@ func (c Certificate) Type() byte {
 }
 
 // get the length of the data in this certificate
+// return -1 if the size of the certificate is invalid
 func (c Certificate) Len() int {
+	if len(c) <= 2 {
+		// invalid size
+		return -1
+	}
 	return int(binary.BigEndian.Uint16(c[1:3]))
 }
 
-// get the data for this certificate or null if non exists
+// get the data for this certificate or null if none exists
 func (c Certificate) Data() (d []byte) {
 	l := c.Len()
-	if l > 0 {
-		// TODO(psi): check bounds correctly?
+	if l > 0 && len(c) <= 3+l {
 		d = c[3 : 3+l]
 	}
 	return

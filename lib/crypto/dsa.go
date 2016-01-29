@@ -42,7 +42,7 @@ var param = dsa.Parameters{
 }
 
 // generate a dsa keypair
-func DSAGenerate(priv *dsa.PrivateKey, rand io.Reader) error {
+func generateDSA(priv *dsa.PrivateKey, rand io.Reader) error {
 	// put our paramters in
 	priv.P = param.P
 	priv.Q = param.Q
@@ -60,16 +60,19 @@ func createDSAPublicKey(Y *big.Int) *dsa.PublicKey {
 }
 
 // createa i2p dsa private key given its public component
-func createDSAPrivkey(X *big.Int) *dsa.PrivateKey {
-	Y := new(big.Int)
-	Y.Exp(dsag, X, dsap)
-	return &dsa.PrivateKey{
-		PublicKey: dsa.PublicKey{
-			Parameters: param,
-			Y:          Y,
-		},
-		X: X,
+func createDSAPrivkey(X *big.Int) (k *dsa.PrivateKey) {
+	if X.Cmp(dsap) == -1 {
+		Y := new(big.Int)
+		Y.Exp(dsag, X, dsap)
+		k = &dsa.PrivateKey{
+			PublicKey: dsa.PublicKey{
+				Parameters: param,
+				Y:          Y,
+			},
+			X: X,
+		}
 	}
+	return
 }
 
 type DSAVerifier struct {
@@ -124,6 +127,26 @@ type DSAPrivateKey [20]byte
 func (k DSAPrivateKey) NewSigner() (s Signer, err error) {
 	s = &DSASigner{
 		k: createDSAPrivkey(new(big.Int).SetBytes(k[:])),
+	}
+	return
+}
+
+func (k DSAPrivateKey) Public() (pk DSAPublicKey, err error) {
+	p := createDSAPrivkey(new(big.Int).SetBytes(k[:]))
+	if p == nil {
+		err = ErrInvalidKeyFormat
+	} else {
+		copy(pk[:], p.Y.Bytes())
+	}
+	return
+}
+
+func (k DSAPrivateKey) Generate() (s DSAPrivateKey, err error) {
+	dk := new(dsa.PrivateKey)
+	err = generateDSA(dk, rand.Reader)
+	if err == nil {
+		copy(k[:], dk.X.Bytes())
+		s = k
 	}
 	return
 }
