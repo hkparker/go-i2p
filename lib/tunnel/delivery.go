@@ -66,3 +66,39 @@ func (di DeliveryInstructions) ToHash() (h []byte) {
   }
   return
 }
+
+// get the i2np message id or 0 if not applicable
+func (di DeliveryInstructions) MessageID() (msgid uint32) {
+  if di.IsFragmented() {
+    idx := 1
+    t := di.DeliveryType()
+    if t == DT_TUNNEL {
+      idx += 36
+    } else if t == DT_ROUTER {
+      idx += 32
+    }
+    if di.HasDelay() {
+      idx ++
+    }
+    msgid = binary.BigEndian.Uint32(di[idx:])
+  }
+  return
+}
+
+// get the size of the associated i2np fragment
+func (di DeliveryInstructions) GetFragmentSize() uint16 {
+  idx := 5
+  t := di.DeliveryType()
+  if t == DT_TUNNEL {
+    idx += 36
+  } else if t == DT_ROUTER {
+    idx += 32
+  }
+  if di.HasDelay() {
+    idx ++
+  }
+  if di.HasExtendedOptions() {
+    // add extended options length to idx
+  }
+  return binary.BigEndian.Uint16(di[idx:])
+}
