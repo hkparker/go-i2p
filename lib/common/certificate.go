@@ -1,4 +1,4 @@
-package stdi2p
+package common
 
 import (
 	"encoding/binary"

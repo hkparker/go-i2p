@@ -16,3 +16,7 @@ func (e *Entry) FilePath(n StdNetDB) (str string) {
 func (e *Entry) WriteTo(w io.Writer) (err error) {
 	return
 }
+
+func (e *Entry) ReadFrom(r io.Reader) (err error) {
+	return
+}

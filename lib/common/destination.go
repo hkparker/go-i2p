@@ -1,4 +1,4 @@
-package stdi2p
+package common
 
 import (
 	"github.com/bounce-chat/go-i2p/lib/common/base32"
