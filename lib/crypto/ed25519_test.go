@@ -5,5 +5,5 @@ import (
 )
 
 func TestEd25519(t *testing.T) {
-	
+
 }

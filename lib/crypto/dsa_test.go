@@ -10,10 +10,10 @@ func TestDSA(t *testing.T) {
 	var err error
 	sk, err = sk.Generate()
 	if err == nil {
-		zeros := 0 
+		zeros := 0
 		for b, _ := range sk {
 			if b == 0 {
-				zeros ++
+				zeros++
 			}
 		}
 		if zeros == len(sk) {
