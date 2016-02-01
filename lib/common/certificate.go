@@ -94,3 +94,17 @@ func (c KeyCert) SigningPublicKey() (k crypto.SigningPublicKey) {
 	// TODO: rsa/eddsa
 	return
 }
+
+func (c Certificate) signatureSize() int {
+	sizes := map[int]int{
+		KEYCERT_SIGN_DSA_SHA1: 40,
+		KEYCERT_SIGN_P256:     64,
+		KEYCERT_SIGN_P384:     96,
+		KEYCERT_SIGN_P521:     132,
+		KEYCERT_SIGN_RSA2048:  256,
+		KEYCERT_SIGN_RSA3072:  384,
+		KEYCERT_SIGN_RSA4096:  512,
+		KEYCERT_SIGN_ED25519:  64,
+	}
+	return sizes[int(c.Type())]
+}
