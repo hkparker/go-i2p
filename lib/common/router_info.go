@@ -35,7 +35,9 @@ func (router_info RouterInfo) RouterAddresses() []RouterAddress {
 	addresses := make([]RouterAddress, 0)
 	for i := 0; i < router_info.RouterAddressCount(); i++ {
 		router_address, remaining, err = readRouterAddress(remaining)
-		addresses = append(addresses, router_address)
+		if err == nil {
+			addresses = append(addresses, router_address)
+		}
 	}
 	return addresses
 }
@@ -63,10 +65,9 @@ func (router_info RouterInfo) optionsLocation() int {
 	offset := 9
 	var router_address RouterAddress
 	remaining := router_info[9:]
-	var err error
 	for i := 0; i < router_info.RouterAddressCount(); i++ {
-		router_address, remaining, err = readRouterAddress(remaining)
-		offset := len(router_address)
+		router_address, remaining, _ = readRouterAddress(remaining)
+		offset = len(router_address)
 	}
 	return offset
 }
