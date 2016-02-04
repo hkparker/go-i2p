@@ -17,7 +17,7 @@ func (lease Lease) TunnelGateway() (h IdentHash) {
 
 func (lease Lease) TunnelID() tunnel.TunnelID {
 	return tunnel.TunnelID(
-		Integer(lease[32:36]...),
+		Integer(lease[32:36]),
 	)
 }
 

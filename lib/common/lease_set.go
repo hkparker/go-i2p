@@ -24,7 +24,7 @@ func (lease_set LeaseSet) SigningKey() (k []byte) {
 
 func (lease_set LeaseSet) LeaseCount() int {
 	head := 387 + 256 + lease_set.signingKeySize()
-	return Integer(lease_set[head+1])
+	return Integer([]byte{lease_set[head+1]})
 }
 
 func (lease_set LeaseSet) Leases() []Lease {

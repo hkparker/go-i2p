@@ -3,7 +3,7 @@ package common
 type RouterAddress []byte
 
 func (router_address RouterAddress) Cost() int {
-	return Integer(router_address[0])
+	return Integer([]byte{router_address[0]})
 }
 
 func (router_address RouterAddress) Expiration() (d Date) {
@@ -24,7 +24,7 @@ func (router_address RouterAddress) Options() Mapping {
 }
 
 func (router_address RouterAddress) stringLength() int {
-	return Integer(router_address[9])
+	return Integer([]byte{router_address[9]})
 }
 
 func readRouterAddress(data []byte) (RouterAddress, []byte, error) {
@@ -34,7 +34,7 @@ func readRouterAddress(data []byte) (RouterAddress, []byte, error) {
 	string_len := router_address.stringLength()
 	router_address = append(router_address, data[10:10+string_len]...)
 
-	options_len := Integer(data[string_len+10 : string_len+11]...)
+	options_len := Integer(data[string_len+10 : string_len+11])
 	router_address = append(router_address, data[string_len+10:11+string_len+options_len]...)
 
 	return router_address, data[:], nil

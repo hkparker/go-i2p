@@ -15,7 +15,7 @@ func (router_info RouterInfo) Published() (d Date) {
 
 func (router_info RouterInfo) RouterAddressCount() int {
 	_, remainder, _ := readRouterIdentity(router_info)
-	return Integer(remainder[8])
+	return Integer([]byte{remainder[8]})
 }
 
 func (router_info RouterInfo) RouterAddresses() []RouterAddress {
@@ -64,5 +64,5 @@ func (router_info RouterInfo) optionsLocation() int {
 
 func (router_info RouterInfo) optionsSize() int {
 	head := router_info.optionsLocation()
-	return Integer(router_info[head : head+1]...)
+	return Integer(router_info[head : head+1])
 }
