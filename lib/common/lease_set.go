@@ -1,8 +1,6 @@
 package common
 
 import (
-	"bytes"
-	"encoding/binary"
 	"github.com/bounce-chat/go-i2p/lib/crypto"
 )
 
@@ -26,12 +24,7 @@ func (lease_set LeaseSet) SigningKey() (k []byte) {
 
 func (lease_set LeaseSet) LeaseCount() int {
 	head := 387 + 256 + lease_set.signingKeySize()
-	var count int
-	buf := bytes.NewReader(
-		[]byte{lease_set[head+1]},
-	)
-	binary.Read(buf, binary.BigEndian, &count)
-	return count
+	return Integer(lease_set[head+1])
 }
 
 func (lease_set LeaseSet) Leases() []Lease {

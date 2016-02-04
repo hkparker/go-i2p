@@ -1,10 +1,5 @@
 package common
 
-import (
-	"bytes"
-	"encoding/binary"
-)
-
 type RouterInfo []byte
 
 func (router_info RouterInfo) RouterIdentity() RouterIdentity {
@@ -20,12 +15,7 @@ func (router_info RouterInfo) Published() (d Date) {
 
 func (router_info RouterInfo) RouterAddressCount() int {
 	_, remainder, _ := readRouterIdentity(router_info)
-	var count int
-	buf := bytes.NewReader(
-		[]byte{remainder[8]},
-	)
-	binary.Read(buf, binary.BigEndian, &count)
-	return count
+	return Integer(remainder[8])
 }
 
 func (router_info RouterInfo) RouterAddresses() []RouterAddress {
@@ -74,5 +64,5 @@ func (router_info RouterInfo) optionsLocation() int {
 
 func (router_info RouterInfo) optionsSize() int {
 	head := router_info.optionsLocation()
-	return int(binary.BigEndian.Uint16(router_info[head : head+1]))
+	return Integer(router_info[head : head+1]...)
 }

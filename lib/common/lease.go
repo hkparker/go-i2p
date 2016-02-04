@@ -1,7 +1,6 @@
 package common
 
 import (
-	"encoding/binary"
 	"github.com/bounce-chat/go-i2p/lib/tunnel"
 )
 
@@ -18,7 +17,7 @@ func (lease Lease) TunnelGateway() (h IdentHash) {
 
 func (lease Lease) TunnelID() tunnel.TunnelID {
 	return tunnel.TunnelID(
-		binary.BigEndian.Uint32(lease[32:36]),
+		Integer(lease[32:36]...),
 	)
 }
 

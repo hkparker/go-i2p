@@ -1,7 +1,6 @@
 package common
 
 import (
-	"encoding/binary"
 	"github.com/bounce-chat/go-i2p/lib/crypto"
 )
 
@@ -44,7 +43,7 @@ func (c Certificate) Len() int {
 		// invalid size
 		return -1
 	}
-	return int(binary.BigEndian.Uint16(c[1:3]))
+	return Integer(c[1:3]...)
 }
 
 // get the data for this certificate or null if none exists
@@ -70,7 +69,7 @@ func (c KeyCert) Data() []byte {
 // get the signing public key from this key cert
 func (c KeyCert) SigningPublicKey() (k crypto.SigningPublicKey) {
 	data := c.Data()
-	ktype := binary.BigEndian.Uint16(data[:2])
+	ktype := Integer(data[:2]...)
 	// set data to be the key data now
 	data = data[4:]
 	// determine the key type
