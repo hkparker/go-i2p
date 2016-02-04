@@ -15,6 +15,7 @@ func ReadString(data []byte) (str String, remainder []byte, err error) {
 	data = data[1:]
 
 	if len(data) < length {
+		str = data
 		err = errors.New("string longer than provided slice")
 		return
 	}
