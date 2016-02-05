@@ -12,7 +12,7 @@ func (router_address RouterAddress) Expiration() (d Date) {
 }
 
 func (router_address RouterAddress) TransportStyle() string {
-	return string(
+	return string( //String
 		router_address[10:router_address.stringLength()],
 	)
 }

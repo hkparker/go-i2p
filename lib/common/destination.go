@@ -7,53 +7,26 @@ import (
 	"strings"
 )
 
-// a network endpoint inside i2p
-// effectively a public key blob
 type Destination []byte
 
-// obtain public elgamal key
-func (dest Destination) PublicKey() (k crypto.PublicEncryptionKey) {
-	cert := dest.Certificate()
-	if cert.Type() == CERT_KEY {
-		// TODO(psi): check for key cert and included encryption key
-	} else {
-		var ek crypto.ElgPublicKey
-		copy(ek[:], dest[:256])
-		k = ek
-	}
-	return
+func (destination Destination) PublicKey() (key crypto.ElgPublicKey) {
+	return KeysAndCert(destination).PublicKey()
 }
 
-// obtain destination certificate
-func (dest Destination) Certificate() Certificate {
-	return Certificate(dest[128+256:])
+func (destination Destination) SigningPublicKey() (key crypto.SigningPublicKey) {
+	return KeysAndCert(destination).SigningPublicKey()
 }
 
-// gets this destination's signing key
-// if there is a keycert in this destination the signing key in there is used
-func (dest Destination) SigningPublicKey() (k crypto.SigningPublicKey) {
-	cert := dest.Certificate()
-	if cert.Type() == CERT_KEY {
-		// we have a key certificate
-		// extract the signing key from the key cert
-		k = KeyCert(cert).SigningPublicKey()
-	} else {
-		var pk crypto.DSAPublicKey
-		copy(pk[:], dest[256:256+128])
-		k = pk
-	}
-	return
+func (destination Destination) Certificate() (cert Certificate) {
+	return KeysAndCert(destination).Certificate()
 }
 
-// return the .b32.i2p address
-func (dest Destination) Base32Address() (str string) {
-	h := crypto.SHA256(dest)
-	str = strings.Trim(base32.EncodeToString(h[:]), "=")
-	str += ".b32.i2p"
-	return
+func (destination Destination) Base32Address() string {
+	hash := crypto.SHA256(destination)
+	str := strings.Trim(base32.EncodeToString(hash[:]), "=")
+	return str + ".b32.i2p"
 }
 
-func (dest Destination) Base64() (str string) {
-	str = base64.EncodeToString(dest)
-	return
+func (destination Destination) Base64() string {
+	return base64.EncodeToString(destination)
 }

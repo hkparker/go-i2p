@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/bounce-chat/go-i2p/lib/crypto"
+	"errors"
 )
 
 const (
@@ -28,73 +28,46 @@ const (
 	KEYCERT_CRYPTO_ELG = iota
 )
 
-// used to append data to existing data structures
 type Certificate []byte
 
-// return the type of this certificate
-func (c Certificate) Type() byte {
-	return c[0]
+func (certificate Certificate) Type() byte {
+	return certificate[0]
 }
 
-// get the length of the data in this certificate
-// return -1 if the size of the certificate is invalid
-func (c Certificate) Len() int {
-	if len(c) <= 2 {
-		// invalid size
-		return -1
+func (certificate Certificate) Length() (int, error) {
+	if len(certificate) < 3 {
+		// log
+		return 0, errors.New("error parsing certificate length: certificate is too short")
 	}
-	return Integer(c[1:3])
-}
-
-// get the data for this certificate or null if none exists
-func (c Certificate) Data() (d []byte) {
-	l := c.Len()
-	if l > 0 && len(c) <= 3+l {
-		d = c[3 : 3+l]
+	length := Integer(certificate[1:3])
+	inferred_len := length + 3
+	cert_len := len(certificate)
+	if inferred_len > cert_len {
+		// log
+		return length, errors.New("certificate parsing warning: certificate data is shorter than specified by length")
+	} else if cert_len > inferred_len {
+		//log
+		return length, errors.New("certificate parsing warning: certificate contains data beyond length")
 	}
-	return
+	return length, nil
 }
 
-// a Certificate of type KEY
-type KeyCert []byte
-
-func (c KeyCert) Type() byte {
-	return Certificate(c).Type()
-}
-
-func (c KeyCert) Data() []byte {
-	return Certificate(c).Data()
-}
-
-// get the signing public key from this key cert
-func (c KeyCert) SigningPublicKey() (k crypto.SigningPublicKey) {
-	data := c.Data()
-	ktype := Integer(data[:2])
-	// set data to be the key data now
-	data = data[4:]
-	// determine the key type
-	if ktype == KEYCERT_SIGN_DSA_SHA1 {
-		var pk crypto.DSAPublicKey
-		copy(pk[:], data[:pk.Len()])
-		k = pk
-	} else if ktype == KEYCERT_SIGN_P256 {
-		var pk crypto.ECP256PublicKey
-		copy(pk[:], data[:pk.Len()])
-		k = pk
-	} else if ktype == KEYCERT_SIGN_P384 {
-		var pk crypto.ECP384PublicKey
-		copy(pk[:], data[:pk.Len()])
-		k = pk
-	} else if ktype == KEYCERT_SIGN_P521 {
-		var pk crypto.ECP521PublicKey
-		copy(pk[:], data[:pk.Len()])
-		k = pk
+func (certificate Certificate) Data() ([]byte, error) {
+	length, err := certificate.Length()
+	if err != nil {
+		switch err.Error() {
+		case "error parsing certificate length: certificate is too short":
+			return make([]byte, 0), err
+		case "certificate parsing warning: certificate data is shorter than specified by length":
+			return certificate[3:], err
+		case "certificate parsing warning: certificate contains data beyond length":
+			return certificate[3 : length+3], err
+		}
 	}
-	// TODO: rsa/eddsa
-	return
+	return certificate[3:], nil
 }
 
-func (c Certificate) signatureSize() int {
+func (certificate Certificate) SignatureSize() int {
 	sizes := map[int]int{
 		KEYCERT_SIGN_DSA_SHA1: 40,
 		KEYCERT_SIGN_P256:     64,
@@ -105,5 +78,21 @@ func (c Certificate) signatureSize() int {
 		KEYCERT_SIGN_RSA4096:  512,
 		KEYCERT_SIGN_ED25519:  64,
 	}
-	return sizes[int(c.Type())]
+	return sizes[int(certificate.Type())]
+}
+
+func ReadCertificate(data []byte) (Certificate, []byte, error) {
+	certificate := Certificate(data)
+	length, err := certificate.Length()
+	if err != nil {
+		switch err.Error() {
+		case "error parsing certificate length: certificate is too short":
+			return Certificate{}, make([]byte, 0), err
+		case "certificate parsing warning: certificate data is shorter than specified by length":
+			return certificate, make([]byte, 0), err
+		case "certificate parsing warning: certificate contains data beyond length":
+			return Certificate(certificate[:length+3]), certificate[length+3:], nil
+		}
+	}
+	return certificate, make([]byte, 0), nil
 }

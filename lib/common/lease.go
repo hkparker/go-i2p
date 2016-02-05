@@ -10,7 +10,7 @@ const (
 
 type Lease [LEASE_SIZE]byte
 
-func (lease Lease) TunnelGateway() (h IdentHash) {
+func (lease Lease) TunnelGateway() (h Hash) {
 	copy(lease[:32], h[:])
 	return
 }

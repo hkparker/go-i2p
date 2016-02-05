@@ -49,7 +49,7 @@ func (lease_set LeaseSet) Signature() []byte {
 	sig_size := lease_set.
 		Destination().
 		Certificate().
-		signatureSize()
+		SignatureSize()
 	return lease_set[data_end : data_end+sig_size]
 }
 
