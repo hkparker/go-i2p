@@ -3,7 +3,7 @@ package common
 import "testing"
 
 func TestStringReportsCorrectLength(t *testing.T) {
-	str_len, err := String([]byte{0x02, 0x00, 0x00}).Length()
+	str_len, err := String([]rune{0x02, 0x00, 0x00}).Length()
 	if str_len != 2 {
 		t.Fatal("string.Length() did not report correct length")
 	}
@@ -13,7 +13,7 @@ func TestStringReportsCorrectLength(t *testing.T) {
 }
 
 func TestStringReportsLengthZeroError(t *testing.T) {
-	str_len, err := String(make([]byte, 0)).Length()
+	str_len, err := String(make([]rune, 0)).Length()
 	if str_len != 0 {
 		t.Fatal("string.Length() reported non-zero length on empty slice")
 	}
@@ -23,7 +23,7 @@ func TestStringReportsLengthZeroError(t *testing.T) {
 }
 
 func TestStringReportsExtraDataError(t *testing.T) {
-	str_len, err := String([]byte{0x01, 0x00, 0x00}).Length()
+	str_len, err := String([]rune{0x01, 0x00, 0x00}).Length()
 	if str_len != 1 {
 		t.Fatal("string.Length() reported wrong size when extra data present")
 	}
@@ -33,9 +33,9 @@ func TestStringReportsExtraDataError(t *testing.T) {
 }
 
 func TestStringDataReportsLengthZeroError(t *testing.T) {
-	str_len, err := String([]byte{0x01}).Length()
+	str_len, err := String([]rune{0x01}).Length()
 	if str_len != 1 {
-		t.Fatal("string.Length() reported wring length with missing data", str_len)
+		t.Fatal("string.Length() reported wrong length with missing data", str_len)
 	}
 	if err == nil || err.Error() != "string parsing warning: string data is shorter than specified by length" {
 		t.Fatal("string.Length() reported wrong error when data was missing", err)
@@ -43,7 +43,7 @@ func TestStringDataReportsLengthZeroError(t *testing.T) {
 }
 
 func TestStringDataReportsExtraDataError(t *testing.T) {
-	data, err := String([]byte{0x01, 0x00, 0x01}).Data()
+	data, err := String([]rune{0x01, 0x00, 0x01}).Data()
 	data_len := len(data)
 	if data_len != 1 {
 		t.Fatal("string.Data() returned wrong size data for length with extra data:", data_len)
@@ -54,7 +54,7 @@ func TestStringDataReportsExtraDataError(t *testing.T) {
 }
 
 func TestStringDataEmptyWhenZeroLength(t *testing.T) {
-	data, err := String(make([]byte, 0)).Data()
+	data, err := String(make([]rune, 0)).Data()
 	data_len := len(data)
 	if data_len != 0 {
 		t.Fatal("string.Data() returned data when none was present:", data_len)
@@ -65,7 +65,7 @@ func TestStringDataEmptyWhenZeroLength(t *testing.T) {
 }
 
 func TestStringDataErrorWhenNonZeroLengthOnly(t *testing.T) {
-	data, err := String([]byte{0x01}).Data()
+	data, err := String([]rune{0x01}).Data()
 	data_len := len(data)
 	if data_len != 0 {
 		t.Fatal("string.Data() returned data when only length was present:", data_len)
@@ -76,7 +76,7 @@ func TestStringDataErrorWhenNonZeroLengthOnly(t *testing.T) {
 }
 
 func TestToI2PStringFormatsCorrectly(t *testing.T) {
-	i2p_string, err := ToI2PString([]byte{0x22, 0x33})
+	i2p_string, err := ToI2PString([]rune{0x22, 0x33})
 	if err != nil {
 		t.Fatal("ToI2PString() returned error on valid data:", err)
 	}
@@ -89,22 +89,22 @@ func TestToI2PStringFormatsCorrectly(t *testing.T) {
 }
 
 func TestToI2PStringReportsOverflows(t *testing.T) {
-	i2p_string, err := ToI2PString(make([]byte, 256))
+	i2p_string, err := ToI2PString(make([]rune, 256))
 	if len(i2p_string) != 0 {
 		t.Fatal("ToI2PString() returned data when overflowed")
 	}
 	if err == nil || err.Error() != "cannot store that much data in I2P string" {
 		t.Fatal("ToI2pString() did not report overflow")
 	}
-	_, err = ToI2PString(make([]byte, 255))
+	_, err = ToI2PString(make([]rune, 255))
 	if err != nil {
 		t.Fatal("ToI2PString() reported error with acceptable size:", err)
 	}
 }
 
 func TestReadStringReadsLength(t *testing.T) {
-	bytes := []byte{0x01, 0x04, 0x06}
-	str, remainder, err := ReadString(bytes)
+	runes := []rune{0x01, 0x04, 0x06}
+	str, remainder, err := ReadString(runes)
 	if err == nil || err.Error() != "string parsing warning: string contains data beyond length" {
 		t.Fatal("ReadString(t *testing.T) returned incorrect error,", err)
 	}
@@ -123,16 +123,16 @@ func TestReadStringReadsLength(t *testing.T) {
 }
 
 func TestReadStringErrWhenEmptySlice(t *testing.T) {
-	bytes := make([]byte, 0)
-	_, _, err := ReadString(bytes)
+	runes := make([]rune, 0)
+	_, _, err := ReadString(runes)
 	if err != nil && err.Error() != "error parsing string: zero length" {
 		t.Fatal("ReadString(t *testing.T) did not report empty slice error", err)
 	}
 }
 
 func TestReadStringErrWhenDataTooShort(t *testing.T) {
-	bytes := []byte{0x03, 0x01}
-	str, remainder, err := ReadString(bytes)
+	runes := []rune{0x03, 0x01}
+	str, remainder, err := ReadString(runes)
 	if err != nil && err.Error() != "string parsing warning: string data is shorter than specified by length" {
 		t.Fatal("ReadString(t *testing.T) did not report string too long", err)
 	}
