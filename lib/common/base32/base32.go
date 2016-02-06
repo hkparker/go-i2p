@@ -1,5 +1,5 @@
 //
-// base32 encoding using i2p's alphabet
+// base32 encoding using I2P's alphabet
 //
 package base32
 
@@ -7,11 +7,12 @@ import (
 	b32 "encoding/base32"
 )
 
-// i2p base32 encoding
 var I2PEncoding *b32.Encoding = b32.NewEncoding("abcdefghijklmnopqrstuvwxyz234567")
 
-// wrapper arround encoding for encoding to string
-func EncodeToString(data []byte) (str string) {
-	str = I2PEncoding.EncodeToString(data)
-	return
+//
+// Return a go string of the I2P base32
+// encoding of the provided byte slice
+//
+func EncodeToString(data []byte) string {
+	return I2PEncoding.EncodeToString(data)
 }
