@@ -34,6 +34,11 @@ func (certificate Certificate) Type() byte {
 	return certificate[0]
 }
 
+//
+// Look up the length of the certificate, reporting
+// errors if the certificate is invalid or the specified
+// length does not match the provided data.
+//
 func (certificate Certificate) Length() (int, error) {
 	if len(certificate) < 3 {
 		// log
@@ -52,6 +57,10 @@ func (certificate Certificate) Length() (int, error) {
 	return length, nil
 }
 
+//
+// Return the certificate data and any errors
+// encountered by Length.
+//
 func (certificate Certificate) Data() ([]byte, error) {
 	length, err := certificate.Length()
 	if err != nil {
@@ -81,6 +90,10 @@ func (certificate Certificate) SignatureSize() int {
 	return sizes[int(certificate.Type())]
 }
 
+//
+// Read a certificate from a slice of bytes, returning
+// any extra data on the end of the slice.
+//
 func ReadCertificate(data []byte) (Certificate, []byte, error) {
 	certificate := Certificate(data)
 	length, err := certificate.Length()

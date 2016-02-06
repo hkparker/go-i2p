@@ -6,6 +6,11 @@ import (
 
 type String []byte
 
+//
+// Look up the length of the string, reporting
+// errors if the string is invalid or the specified
+// length does not match the provided data.
+//
 func (str String) Length() (int, error) {
 	if len(str) == 0 {
 		// log
@@ -24,6 +29,10 @@ func (str String) Length() (int, error) {
 	return length, nil
 }
 
+//
+// Return the string data and any errors
+// encountered by Length.
+//
 func (str String) Data() (string, error) {
 	length, err := str.Length()
 	if err != nil {
@@ -39,6 +48,11 @@ func (str String) Data() (string, error) {
 	return string(str[1:]), nil
 }
 
+//
+// This function takes an unformatted go string
+// and returns a String and any errors encountered
+// during the encoding.
+//
 func ToI2PString(data string) (String, error) {
 	data_len := len(data)
 	if data_len >= 256 {
@@ -49,6 +63,10 @@ func ToI2PString(data string) (String, error) {
 	return String(i2p_string), nil
 }
 
+//
+// Read a string from a slice of bytes, returning
+// any extra data on the end of the slice.
+//
 func ReadString(data []byte) (String, []byte, error) {
 	str := String(data)
 	length, err := String(data).Length()
