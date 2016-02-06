@@ -1,31 +1,21 @@
 package common
 
-import (
-	"bytes"
-	"encoding/binary"
-)
-
 type RouterInfo []byte
 
 func (router_info RouterInfo) RouterIdentity() RouterIdentity {
-	router_identity, _, _ := readRouterIdentity(router_info)
+	router_identity, _, _ := ReadRouterIdentity(router_info)
 	return router_identity
 }
 
 func (router_info RouterInfo) Published() (d Date) {
-	_, remainder, _ := readRouterIdentity(router_info)
+	_, remainder, _ := ReadRouterIdentity(router_info)
 	copy(remainder[:8], d[:])
 	return
 }
 
 func (router_info RouterInfo) RouterAddressCount() int {
-	_, remainder, _ := readRouterIdentity(router_info)
-	var count int
-	buf := bytes.NewReader(
-		[]byte{remainder[8]},
-	)
-	binary.Read(buf, binary.BigEndian, &count)
-	return count
+	_, remainder, _ := ReadRouterIdentity(router_info)
+	return Integer([]byte{remainder[8]})
 }
 
 func (router_info RouterInfo) RouterAddresses() []RouterAddress {
@@ -57,7 +47,7 @@ func (router_info RouterInfo) Signature() []byte {
 	sig_size := router_info.
 		RouterIdentity().
 		Certificate().
-		signatureSize()
+		SignatureSize()
 	return router_info[offset:sig_size]
 }
 
@@ -74,5 +64,5 @@ func (router_info RouterInfo) optionsLocation() int {
 
 func (router_info RouterInfo) optionsSize() int {
 	head := router_info.optionsLocation()
-	return int(binary.BigEndian.Uint16(router_info[head : head+1]))
+	return Integer(router_info[head : head+1])
 }
