@@ -9,15 +9,15 @@ import (
 
 type Destination []byte
 
-func (destination Destination) PublicKey() (key crypto.ElgPublicKey) {
+func (destination Destination) PublicKey() (crypto.ElgPublicKey, error) {
 	return KeysAndCert(destination).PublicKey()
 }
 
-func (destination Destination) SigningPublicKey() (key crypto.SigningPublicKey) {
+func (destination Destination) SigningPublicKey() (crypto.SigningPublicKey, error) {
 	return KeysAndCert(destination).SigningPublicKey()
 }
 
-func (destination Destination) Certificate() (cert Certificate) {
+func (destination Destination) Certificate() (Certificate, error) {
 	return KeysAndCert(destination).Certificate()
 }
 

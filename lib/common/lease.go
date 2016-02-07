@@ -4,11 +4,7 @@ import (
 	"github.com/bounce-chat/go-i2p/lib/tunnel"
 )
 
-const (
-	LEASE_SIZE = 44
-)
-
-type Lease [LEASE_SIZE]byte
+type Lease [44]byte
 
 func (lease Lease) TunnelGateway() (h Hash) {
 	copy(lease[:32], h[:])
