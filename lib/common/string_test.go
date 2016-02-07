@@ -106,43 +106,43 @@ func TestReadStringReadsLength(t *testing.T) {
 	bytes := []byte{0x01, 0x04, 0x06}
 	str, remainder, err := ReadString(bytes)
 	if err == nil || err.Error() != "string parsing warning: string contains data beyond length" {
-		t.Fatal("ReadString(t *testing.T) returned incorrect error,", err)
+		t.Fatal("ReadString() returned incorrect error,", err)
 	}
 	if len(str) != 2 {
-		t.Fatal("ReadString(t *testing.T) did not return correct string length:", len(str))
+		t.Fatal("ReadString() did not return correct string length:", len(str))
 	}
 	if str[0] != 0x01 && str[1] != 0x04 {
-		t.Fatal("ReadString(t *testing.T) did not return correct string")
+		t.Fatal("ReadString() did not return correct string")
 	}
 	if len(remainder) != 1 {
-		t.Fatal("ReadString(t *testing.T) did not return correct remainder length")
+		t.Fatal("ReadString() did not return correct remainder length")
 	}
 	if remainder[0] != 0x06 {
-		t.Fatal("ReadString(t *testing.T) did not return correct remainder")
+		t.Fatal("ReadString() did not return correct remainder")
 	}
 }
 
 func TestReadStringErrWhenEmptySlice(t *testing.T) {
 	bytes := make([]byte, 0)
 	_, _, err := ReadString(bytes)
-	if err != nil && err.Error() != "error parsing string: zero length" {
-		t.Fatal("ReadString(t *testing.T) did not report empty slice error", err)
+	if err == nil || err.Error() != "error parsing string: zero length" {
+		t.Fatal("ReadString() did not report empty slice error", err)
 	}
 }
 
 func TestReadStringErrWhenDataTooShort(t *testing.T) {
-	bytes := []byte{0x03, 0x01}
-	str, remainder, err := ReadString(bytes)
-	if err != nil && err.Error() != "string parsing warning: string data is shorter than specified by length" {
-		t.Fatal("ReadString(t *testing.T) did not report string too long", err)
+	short_str := []byte{0x03, 0x01}
+	str, remainder, err := ReadString(short_str)
+	if err == nil || err.Error() != "string parsing warning: string data is shorter than specified by length" {
+		t.Fatal("ReadString() did not report string too long:", err)
 	}
 	if len(str) != 2 {
-		t.Fatal("ReadString(t *testing.T) did not return the slice as string when too long")
+		t.Fatal("ReadString() did not return the slice as string when too long")
 	}
 	if str[0] != 0x03 && str[1] != 0x01 {
-		t.Fatal("ReadString(t *testing.T) did not return the correct partial string")
+		t.Fatal("ReadString() did not return the correct partial string")
 	}
 	if len(remainder) != 0 {
-		t.Fatal("ReadString(t *testing.T) returned a remainder when the string data was too short")
+		t.Fatal("ReadString() returned a remainder when the string data was too short")
 	}
 }

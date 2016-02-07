@@ -14,24 +14,31 @@ type MappingValues [][2]String
 // the form of a MappingValues.
 //
 func (mapping Mapping) Values() (map_values MappingValues, errs []error) {
-	// check length and append any errors needed, max: 65537
-	// sanity check no data is missing
-
 	var str String
 	var remainder = mapping
 	var err error
+
+	length := Integer(remainder[:2])
+	remainder = remainder[2:]
+	mapping_len := len(mapping)
+	if mapping_len > length+2 {
+		errs = append(errs, errors.New("warning parsing mapping: data exists beyond length of mapping"))
+	} else if length+2 > mapping_len {
+		errs = append(errs, errors.New("warning parsing mapping: mapping length exceeds provided data"))
+	}
+
 	for {
 		// Read a key, breaking on fatal errors
 		// and appending warnings
 		str, remainder, err = ReadString(remainder)
 		key_str := str
 		if err != nil {
-			errs = append(errs, err)
 			if stopValueRead(err) {
+				errs = append(errs, err)
 				return
 			}
 		}
-		if !beginsWith(remainder, "=") {
+		if !beginsWith(remainder, 0x3d) {
 			errs = append(errs, errors.New("mapping format violation, expected ="))
 			return
 		}
@@ -42,12 +49,12 @@ func (mapping Mapping) Values() (map_values MappingValues, errs []error) {
 		str, remainder, err = ReadString(remainder)
 		val_str := str
 		if err != nil {
-			errs = append(errs, err)
 			if stopValueRead(err) {
+				errs = append(errs, err)
 				return
 			}
 		}
-		if !beginsWith(remainder, ";") {
+		if !beginsWith(remainder, 0x3b) {
 			errs = append(errs, errors.New("mapping format violation, expected ;"))
 			return
 		}
@@ -67,6 +74,16 @@ func (mapping Mapping) Values() (map_values MappingValues, errs []error) {
 // Returns true if two keys in a mapping are identical
 //
 func (mapping Mapping) HasDuplicateKeys() bool {
+	seen_values := make(map[string]bool)
+	values, _ := mapping.Values()
+	for _, pair := range values {
+		key, _ := pair[0].Data()
+		if _, present := seen_values[key]; present {
+			return true
+		} else {
+			seen_values[key] = true
+		}
+	}
 	return false
 }
 
@@ -79,8 +96,10 @@ func ValuesToMapping(values MappingValues) Mapping {
 	var mapping Mapping
 	mappingOrder(values)
 	for _, kv_pair := range values {
-		key_string := String(kv_pair[0])
-		key_value := String(kv_pair[1])
+		key_string := kv_pair[0]
+		key_string = append(key_string, []byte("=")[0])
+		key_value := kv_pair[1]
+		key_value = append(key_value, []byte(";")[0])
 		mapping = append(append(mapping, key_string...), key_value...)
 	}
 	map_len := len(mapping)
@@ -152,7 +171,7 @@ func stopValueRead(err error) bool {
 	return err.Error() == "error parsing string: zero length"
 }
 
-func beginsWith(bytes []byte, str string) bool {
+func beginsWith(bytes []byte, chr byte) bool {
 	return len(bytes) != 0 &&
-		string(bytes[0]) == str
+		bytes[0] == chr
 }
