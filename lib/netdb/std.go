@@ -1,7 +1,6 @@
 package netdb
 
 import (
-	"github.com/bounce-chat/go-i2p/lib/common"
 	log "github.com/golang/glog"
 	"io"
 	"os"
@@ -24,7 +23,8 @@ func (db StdNetDB) KnownPeerCount() (routers int) {
 
 // return true if the network db directory exists and is writable
 func (db StdNetDB) Exists() bool {
-	return common.FileExists(db.Path())
+	_, err := os.Stat(db.Path())
+	return err != nil
 }
 
 func (db StdNetDB) SaveEntry(e *Entry) (err error) {

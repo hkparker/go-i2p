@@ -7,7 +7,7 @@ import (
 type LeaseSet []byte
 
 func (lease_set LeaseSet) Destination() Destination {
-	return Destination(lease_set[:387])
+	return Destination(lease_set[:387]) // read a keys and cert, cast to destination
 }
 
 func (lease_set LeaseSet) EncryptionKey() (k crypto.ElgPublicKey) {
@@ -31,8 +31,8 @@ func (lease_set LeaseSet) Leases() []Lease {
 	leases := make([]Lease, 0)
 	offset := 387 + 256 + lease_set.signingKeySize() + 1
 	for i := 0; i < lease_set.LeaseCount(); i++ {
-		start := offset + (i * LEASE_SIZE)
-		end := offset + (start + LEASE_SIZE)
+		start := offset + (i * 44)
+		end := offset + (start + 44)
 		var lease Lease
 		copy(lease_set[start:end], lease[:])
 		leases = append(leases, lease)
@@ -45,11 +45,11 @@ func (lease_set LeaseSet) Signature() []byte {
 		256 +
 		lease_set.signingKeySize() +
 		1 +
-		(LEASE_SIZE * lease_set.LeaseCount())
-	sig_size := lease_set.
+		(44 * lease_set.LeaseCount())
+	sig_cert, _ := lease_set.
 		Destination().
-		Certificate().
-		SignatureSize()
+		Certificate()
+	sig_size := sig_cert.SignatureSize()
 	return lease_set[data_end : data_end+sig_size]
 }
 
@@ -58,12 +58,12 @@ func (lease_set LeaseSet) Verify() error {
 		256 +
 		lease_set.signingKeySize() +
 		1 +
-		(LEASE_SIZE * lease_set.LeaseCount())
+		(44 * lease_set.LeaseCount())
 	data := lease_set[:data_end]
-	verifier, err := lease_set.
+	spk, _ := lease_set.
 		Destination().
-		SigningPublicKey().
-		NewVerifier()
+		SigningPublicKey()
+	verifier, err := spk.NewVerifier()
 	if err != nil {
 		return err
 	}
@@ -71,8 +71,8 @@ func (lease_set LeaseSet) Verify() error {
 }
 
 func (lease_set LeaseSet) signingKeySize() int {
-	return lease_set.
+	spk, _ := lease_set.
 		Destination().
-		SigningPublicKey().
-		Len()
+		SigningPublicKey()
+	return spk.Len()
 }
