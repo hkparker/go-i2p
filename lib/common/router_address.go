@@ -11,7 +11,7 @@ type RouterAddress []byte
 // encountered parsing the RouterAddress.
 //
 func (router_address RouterAddress) Cost() (cost int, err error) {
-	verr, exit := router_address.checkRouterAddressValid()
+	verr, exit := router_address.checkValid()
 	err = verr
 	if exit {
 		return
@@ -25,12 +25,12 @@ func (router_address RouterAddress) Cost() (cost int, err error) {
 // encountered parsing the RouterAddress.
 //
 func (router_address RouterAddress) Expiration() (date Date, err error) {
-	verr, exit := router_address.checkRouterAddressValid()
+	verr, exit := router_address.checkValid()
 	err = verr
 	if exit {
 		return
 	}
-	copy(router_address[1:8], date[:])
+	copy(date[:], router_address[1:9])
 	return
 }
 
@@ -40,7 +40,7 @@ func (router_address RouterAddress) Expiration() (date Date, err error) {
 //
 //
 func (router_address RouterAddress) TransportStyle() (str String, err error) {
-	verr, exit := router_address.checkRouterAddressValid()
+	verr, exit := router_address.checkValid()
 	err = verr
 	if exit {
 		return
@@ -54,7 +54,7 @@ func (router_address RouterAddress) TransportStyle() (str String, err error) {
 // RouterAddress and any parsing errors.
 //
 func (router_address RouterAddress) Options() (mapping Mapping, err error) {
-	verr, exit := router_address.checkRouterAddressValid()
+	verr, exit := router_address.checkValid()
 	err = verr
 	if exit {
 		return
@@ -71,14 +71,13 @@ func (router_address RouterAddress) Options() (mapping Mapping, err error) {
 // Check if the RouterAddress is empty or if it is too small
 // to contain valid data
 //
-func (router_address RouterAddress) checkRouterAddressValid() (err error, exit bool) {
+func (router_address RouterAddress) checkValid() (err error, exit bool) {
 	addr_len := len(router_address)
 	exit = false
-	if len(router_address) == 0 {
+	if addr_len == 0 {
 		err = errors.New("error parsing RouterAddress: no data")
 		exit = true
-	}
-	if addr_len < 9 {
+	} else if addr_len < 9 {
 		err = errors.New("warning parsing RouterAddress: data too small")
 	}
 	return
@@ -90,14 +89,23 @@ func (router_address RouterAddress) checkRouterAddressValid() (err error, exit b
 //
 func ReadRouterAddress(data []byte) (router_address RouterAddress, remainder []byte, err error) {
 	test_address := RouterAddress(data)
-	err, _ = test_address.checkRouterAddressValid()
+	err, _ = test_address.checkValid()
 	if err != nil {
 		return
 	}
-	ops, rerr := test_address.Options()
-	err = rerr
-	ops_len := len(ops)
-	router_address = RouterAddress(data[:9+ops_len])
-	remainder = data[9+ops_len:]
+	router_address = append(router_address, data[:9]...)
+	str, remainder, err := ReadString(data[9:])
+	if err != nil {
+		return
+	}
+	router_address = append(router_address, str...)
+	map_size := 0
+	mapping := make([]byte, 0)
+	if len(remainder) >= 2 {
+		map_size = Integer(remainder[:2])
+		mapping = remainder[:map_size+2]
+		router_address = append(router_address, mapping...)
+	}
+	remainder = data[9+len(str)+len(mapping):]
 	return
 }

@@ -77,7 +77,7 @@ func ReadString(data []byte) (String, []byte, error) {
 		case "string parsing warning: string data is shorter than specified by length":
 			return str, make([]byte, 0), err
 		case "string parsing warning: string contains data beyond length":
-			return String(str[:length+1]), str[length+1:], err
+			return String(str[:length+1]), str[length+1:], nil //err
 		}
 	}
 	return str, make([]byte, 0), nil

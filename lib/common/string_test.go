@@ -105,8 +105,8 @@ func TestToI2PStringReportsOverflows(t *testing.T) {
 func TestReadStringReadsLength(t *testing.T) {
 	bytes := []byte{0x01, 0x04, 0x06}
 	str, remainder, err := ReadString(bytes)
-	if err == nil || err.Error() != "string parsing warning: string contains data beyond length" {
-		t.Fatal("ReadString() returned incorrect error,", err)
+	if err != nil {
+		t.Fatal("ReadString() returned error reading string with extra data,", err)
 	}
 	if len(str) != 2 {
 		t.Fatal("ReadString() did not return correct string length:", len(str))
