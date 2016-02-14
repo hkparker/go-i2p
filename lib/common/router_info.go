@@ -90,10 +90,10 @@ func (router_info RouterInfo) Options() Mapping {
 //
 // Return the 40 bytes that follow the Mapping in the RouterInfo.
 //
-func (router_info RouterInfo) Signature() []byte {
+func (router_info RouterInfo) Signature() Signature {
 	head := router_info.optionsLocation()
 	size := head + router_info.optionsSize()
-	return router_info[head+size : head+size+40]
+	return Signature(router_info[head+size : head+size+40])
 }
 
 //
