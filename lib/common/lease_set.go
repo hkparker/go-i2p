@@ -46,11 +46,11 @@ func (lease_set LeaseSet) Signature() []byte {
 		lease_set.signingKeySize() +
 		1 +
 		(44 * lease_set.LeaseCount())
-	sig_cert, _ := lease_set.
-		Destination().
-		Certificate()
-	sig_size := sig_cert.SignatureSize()
-	return lease_set[data_end : data_end+sig_size]
+	//sig_cert, _ := lease_set.
+	//	Destination().
+	//	Certificate()
+	//sig_size, _ := sig_cert.SignatureSize()
+	return lease_set[data_end : data_end+128] //sig_size]
 }
 
 func (lease_set LeaseSet) Verify() error {

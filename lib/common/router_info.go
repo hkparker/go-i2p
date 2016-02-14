@@ -22,7 +22,7 @@ func (router_info RouterInfo) RouterIdentity() (router_identity RouterIdentity, 
 func (router_info RouterInfo) Published() (date Date, err error) {
 	_, remainder, _ := ReadRouterIdentity(router_info)
 	if len(remainder) < 8 {
-		err = errors.New("")
+		err = errors.New("error parsing date: not enough data")
 		return
 	}
 	copy(remainder[:8], date[:])
@@ -36,7 +36,7 @@ func (router_info RouterInfo) Published() (date Date, err error) {
 func (router_info RouterInfo) RouterAddressCount() (count int, err error) {
 	_, remainder, _ := ReadRouterIdentity(router_info)
 	if len(remainder) < 9 {
-		err = errors.New("")
+		err = errors.New("error parsing router addresses: not enough data")
 		return
 	}
 	count = Integer([]byte{remainder[8]})
@@ -50,7 +50,7 @@ func (router_info RouterInfo) RouterAddressCount() (count int, err error) {
 func (router_info RouterInfo) RouterAddresses() (router_addresses []RouterAddress, err error) {
 	_, remainder, _ := ReadRouterIdentity(router_info)
 	if len(remainder) < 9 {
-		err = errors.New("")
+		err = errors.New("error parsing router addresses: not enough data")
 		return
 	}
 	remaining := router_info[9:]
@@ -79,7 +79,7 @@ func (router_info RouterInfo) PeerSize() int {
 }
 
 //
-//
+// Return the Options Mapping inside this RouterInfo.
 //
 func (router_info RouterInfo) Options() Mapping {
 	head := router_info.optionsLocation()
@@ -88,18 +88,17 @@ func (router_info RouterInfo) Options() Mapping {
 }
 
 //
-//
+// Return the 40 bytes that follow the Mapping in the RouterInfo.
 //
 func (router_info RouterInfo) Signature() []byte {
-	offset := router_info.optionsLocation() + router_info.optionsSize()
-	router_identity, _ := router_info.RouterIdentity()
-	cert, _ := router_identity.Certificate()
-	sig_size := cert.SignatureSize()
-	return router_info[offset:sig_size]
+	head := router_info.optionsLocation()
+	size := head + router_info.optionsSize()
+	return router_info[head+size : head+size+40]
 }
 
 //
-//
+// Used to determine where in the RouterInfo the Mapping
+// data begins for parsing.
 //
 func (router_info RouterInfo) optionsLocation() int {
 	offset := 9
@@ -114,9 +113,10 @@ func (router_info RouterInfo) optionsLocation() int {
 }
 
 //
-//
+// Used to determine the size of the options in the RouterInfo
+// for parsing.
 //
 func (router_info RouterInfo) optionsSize() int {
 	head := router_info.optionsLocation()
-	return Integer(router_info[head : head+1])
+	return Integer(router_info[head:head+1]) + 1
 }

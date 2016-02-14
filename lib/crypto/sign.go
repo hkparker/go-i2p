@@ -26,6 +26,11 @@ type SigningPublicKey interface {
 	Len() int
 }
 
+type PublicKey interface {
+	Len() int
+	NewEncrypter() (Encrypter, error)
+}
+
 // type for signing data
 type Signer interface {
 	// sign data with our private key by calling SignHash after hashing the data we are given

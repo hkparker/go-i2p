@@ -4,6 +4,7 @@ import (
 	"errors"
 )
 
+// Certificate Types
 const (
 	CERT_NULL = iota
 	CERT_HASHCASH
@@ -13,25 +14,15 @@ const (
 	CERT_KEY
 )
 
-const (
-	KEYCERT_SIGN_DSA_SHA1 = iota
-	KEYCERT_SIGN_P256
-	KEYCERT_SIGN_P384
-	KEYCERT_SIGN_P521
-	KEYCERT_SIGN_RSA2048
-	KEYCERT_SIGN_RSA3072
-	KEYCERT_SIGN_RSA4096
-	KEYCERT_SIGN_ED25519
-)
-
-const (
-	KEYCERT_CRYPTO_ELG = iota
-)
-
 type Certificate []byte
 
-func (certificate Certificate) Type() byte {
-	return certificate[0]
+func (certificate Certificate) Type() (cert_type int, err error) {
+	if len(certificate) < 1 {
+		err = errors.New("")
+		return
+	}
+	cert_type = Integer([]byte{certificate[0]})
+	return
 }
 
 //
@@ -74,20 +65,6 @@ func (certificate Certificate) Data() ([]byte, error) {
 		}
 	}
 	return certificate[3:], nil
-}
-
-func (certificate Certificate) SignatureSize() int {
-	sizes := map[int]int{
-		KEYCERT_SIGN_DSA_SHA1: 40,
-		KEYCERT_SIGN_P256:     64,
-		KEYCERT_SIGN_P384:     96,
-		KEYCERT_SIGN_P521:     132,
-		KEYCERT_SIGN_RSA2048:  256,
-		KEYCERT_SIGN_RSA3072:  384,
-		KEYCERT_SIGN_RSA4096:  512,
-		KEYCERT_SIGN_ED25519:  64,
-	}
-	return sizes[int(certificate.Type())]
 }
 
 //

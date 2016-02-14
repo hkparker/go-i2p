@@ -6,7 +6,7 @@ import (
 
 type RouterIdentity []byte
 
-func (router_identity RouterIdentity) PublicKey() (crypto.ElgPublicKey, error) {
+func (router_identity RouterIdentity) PublicKey() (crypto.PublicKey, error) {
 	return KeysAndCert(router_identity).PublicKey()
 }
 

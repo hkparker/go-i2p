@@ -5,8 +5,12 @@ import "testing"
 func TestCertificateTypeIsFirstByte(t *testing.T) {
 	bytes := []byte{0x03, 0x00, 0x00}
 	certificate := Certificate(bytes)
-	if certificate.Type() != 0x03 {
+	cert_type, err := certificate.Type()
+	if cert_type != 3 {
 		t.Fatal("certificate.Type() is not first byte")
+	}
+	if err != nil {
+		t.Fatal("certificate.Type returned error on valid data:", err)
 	}
 }
 

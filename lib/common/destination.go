@@ -9,7 +9,7 @@ import (
 
 type Destination []byte
 
-func (destination Destination) PublicKey() (crypto.ElgPublicKey, error) {
+func (destination Destination) PublicKey() (crypto.PublicKey, error) {
 	return KeysAndCert(destination).PublicKey()
 }
 
