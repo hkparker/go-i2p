@@ -1,14 +1,88 @@
 package common
 
+/*
+I2P RouterInfo
+https://geti2p.net/en/docs/spec/common-structures#struct_RouterInfo
+Accurate for version 0.9.24
+
++----+----+----+----+----+----+----+----+
+| router_ident                          |
++                                       +
+|                                       |
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| published                             |
++----+----+----+----+----+----+----+----+
+|size| RouterAddress 0                  |
++----+                                  +
+|                                       |
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| RouterAddress 1                       |
++                                       +
+|                                       |
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+----+----+----+----+
+| RouterAddress ($size-1)               |
++                                       +
+|                                       |
+~                                       ~
+~                                       ~
+|                                       |
++----+----+----+----+-//-+----+----+----+
+|psiz| options                          |
++----+----+----+----+-//-+----+----+----+
+| signature                             |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++                                       +
+|                                       |
++----+----+----+----+----+----+----+----+
+
+router_ident :: RouterIdentity
+                length -> >= 387 bytes
+
+published :: Date
+             length -> 8 bytes
+
+size :: Integer
+        length -> 1 byte
+        The number of RouterAddresses to follow, 0-255
+
+addresses :: [RouterAddress]
+             length -> varies
+
+peer_size :: Integer
+             length -> 1 byte
+             The number of peer Hashes to follow, 0-255, unused, always zero
+             value -> 0
+
+options :: Mapping
+
+signature :: Signature
+             length -> 40 bytes
+*/
+
 import (
 	"errors"
+	log "github.com/Sirupsen/logrus"
 )
 
 type RouterInfo []byte
 
 //
-// Read a RouterIdentity from the RouterInfo, returning the
-// RouterIdentity and any parsing errors.
+// Read a RouterIdentity from the RouterInfo, returning the RouterIdentity and any errors
+// encountered parsing the RouterIdentity.
 //
 func (router_info RouterInfo) RouterIdentity() (router_identity RouterIdentity, err error) {
 	router_identity, _, err = ReadRouterIdentity(router_info)
@@ -16,12 +90,17 @@ func (router_info RouterInfo) RouterIdentity() (router_identity RouterIdentity, 
 }
 
 //
-// Return the Date the RouterInfo was published and any errors
-// encountered parsing the RouterInfo.
+// Return the Date the RouterInfo was published and any errors encountered parsing the RouterInfo.
 //
 func (router_info RouterInfo) Published() (date Date, err error) {
 	_, remainder, _ := ReadRouterIdentity(router_info)
-	if len(remainder) < 8 {
+	remainder_len := len(remainder)
+	if remainder_len < 8 {
+		log.WithFields(log.Fields{
+			"data_len":     remainder_len,
+			"required_len": 8,
+			"reason":       "not enough data",
+		}).Error("error parsing router info")
 		err = errors.New("error parsing date: not enough data")
 		return
 	}
@@ -30,12 +109,17 @@ func (router_info RouterInfo) Published() (date Date, err error) {
 }
 
 //
-// Return the Integer representing the number of RouterAddresses
-// are contained in this RouterInfo.
+// Return the Integer representing the number of RouterAddresses that are contained in this RouterInfo.
 //
 func (router_info RouterInfo) RouterAddressCount() (count int, err error) {
 	_, remainder, _ := ReadRouterIdentity(router_info)
-	if len(remainder) < 9 {
+	remainder_len := len(remainder)
+	if remainder_len < 9 {
+		log.WithFields(log.Fields{
+			"data_len":     remainder_len,
+			"required_len": 9,
+			"reason":       "not enough data",
+		}).Error("error parsing router info")
 		err = errors.New("error parsing router addresses: not enough data")
 		return
 	}
@@ -44,12 +128,18 @@ func (router_info RouterInfo) RouterAddressCount() (count int, err error) {
 }
 
 //
-// Read the RouterAddresses inside this RouterInfo and return
-// them in a slice.
+// Read the RouterAddresses inside this RouterInfo and return them in a slice, returning
+// a partial list if data is missing.
 //
 func (router_info RouterInfo) RouterAddresses() (router_addresses []RouterAddress, err error) {
 	_, remainder, _ := ReadRouterIdentity(router_info)
-	if len(remainder) < 9 {
+	remainder_len := len(remainder)
+	if remainder_len < 9 {
+		log.WithFields(log.Fields{
+			"data_len":     remainder_len,
+			"required_len": 9,
+			"reason":       "not enough data",
+		}).Error("error parsing router info")
 		err = errors.New("error parsing router addresses: not enough data")
 		return
 	}
@@ -81,42 +171,43 @@ func (router_info RouterInfo) PeerSize() int {
 //
 // Return the Options Mapping inside this RouterInfo.
 //
-func (router_info RouterInfo) Options() Mapping {
+func (router_info RouterInfo) Options() (mapping Mapping) {
 	head := router_info.optionsLocation()
 	size := head + router_info.optionsSize()
-	return Mapping(router_info[head:size])
+	mapping = Mapping(router_info[head:size])
+	return
 }
 
 //
 // Return the 40 bytes that follow the Mapping in the RouterInfo.
 //
-func (router_info RouterInfo) Signature() Signature {
+func (router_info RouterInfo) Signature() (signature Signature) {
 	head := router_info.optionsLocation()
 	size := head + router_info.optionsSize()
-	return Signature(router_info[head+size : head+size+40])
+	signature = Signature(router_info[head+size : head+size+40])
+	return
 }
 
 //
-// Used to determine where in the RouterInfo the Mapping
-// data begins for parsing.
+// Used during parsing to determine where in the RouterInfo the Mapping data begins.
 //
-func (router_info RouterInfo) optionsLocation() int {
-	offset := 9
+func (router_info RouterInfo) optionsLocation() (location int) {
+	location = 9
 	var router_address RouterAddress
 	remaining := router_info[9:]
 	addr_count, _ := router_info.RouterAddressCount()
 	for i := 0; i < addr_count; i++ {
 		router_address, remaining, _ = ReadRouterAddress(remaining)
-		offset += len(router_address)
+		location += len(router_address)
 	}
-	return offset
+	return
 }
 
 //
-// Used to determine the size of the options in the RouterInfo
-// for parsing.
+// Used during parsing to determine the size of the options in the RouterInfo.
 //
-func (router_info RouterInfo) optionsSize() int {
+func (router_info RouterInfo) optionsSize() (size int) {
 	head := router_info.optionsLocation()
-	return Integer(router_info[head:head+1]) + 1
+	size = Integer(router_info[head:head+1]) + 1
+	return
 }
