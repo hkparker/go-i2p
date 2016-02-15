@@ -18,3 +18,10 @@ func TestWorksWith1Byte(t *testing.T) {
 		t.Fatal("Integer() does not work with 1 byte")
 	}
 }
+
+func TestIsZeroWithNoData(t *testing.T) {
+	i := Integer([]byte{})
+	if i != 0 {
+		t.Fatal("Integer() does not work with 0 bytes")
+	}
+}

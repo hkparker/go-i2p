@@ -7,6 +7,10 @@ import (
 	"strings"
 )
 
+//
+// A Destination is a KeysAndCert with functionallity
+// for generating base32 and base64 addresses.
+//
 type Destination []byte
 
 func (destination Destination) PublicKey() (crypto.PublicKey, error) {
@@ -21,12 +25,19 @@ func (destination Destination) Certificate() (Certificate, error) {
 	return KeysAndCert(destination).Certificate()
 }
 
-func (destination Destination) Base32Address() string {
+//
+// Generate the I2P base32 address for this Destination.
+//
+func (destination Destination) Base32Address() (str string) {
 	hash := crypto.SHA256(destination)
-	str := strings.Trim(base32.EncodeToString(hash[:]), "=")
-	return str + ".b32.i2p"
+	str = strings.Trim(base32.EncodeToString(hash[:]), "=")
+	str = str + ".b32.i2p"
+	return
 }
 
+//
+// Generate the I2P base64 address for this Destination.
+//
 func (destination Destination) Base64() string {
 	return base64.EncodeToString(destination)
 }
