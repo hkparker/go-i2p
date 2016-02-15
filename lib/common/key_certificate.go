@@ -1,5 +1,11 @@
 package common
 
+/*
+I2P Key Certificate
+https://geti2p.net/en/docs/spec/common-structures#type_Certificate
+Accurate for version 0.9.24
+*/
+
 import (
 	"errors"
 	"github.com/bounce-chat/go-i2p/lib/crypto"

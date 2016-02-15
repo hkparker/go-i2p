@@ -1,5 +1,11 @@
 package common
 
+/*
+I2P Date
+https://geti2p.net/en/docs/spec/common-structures#type_Date
+Accurate for version 0.9.24
+*/
+
 import (
 	"time"
 )

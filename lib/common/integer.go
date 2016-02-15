@@ -1,5 +1,11 @@
 package common
 
+/*
+I2P Integer
+https://geti2p.net/en/docs/spec/common-structures#type_Integer
+Accurate for version 0.9.24
+*/
+
 import (
 	"encoding/binary"
 )

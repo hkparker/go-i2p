@@ -1,6 +1,8 @@
 package common
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestCertificateTypeIsFirstByte(t *testing.T) {
 	bytes := []byte{0x03, 0x00, 0x00}

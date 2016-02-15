@@ -1,5 +1,13 @@
 package common
 
+/*
+I2P Destination
+https://geti2p.net/en/docs/spec/common-structures#struct_Destination
+Accurate for version 0.9.24
+
+Identical to KeysAndCert
+*/
+
 import (
 	"github.com/bounce-chat/go-i2p/lib/common/base32"
 	"github.com/bounce-chat/go-i2p/lib/common/base64"

@@ -1,6 +1,8 @@
 package common
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestStringReportsCorrectLength(t *testing.T) {
 	str_len, err := String([]byte{0x02, 0x00, 0x00}).Length()
