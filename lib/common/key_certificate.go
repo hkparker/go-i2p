@@ -147,3 +147,22 @@ func (key_certificate KeyCertificate) ConstructSigningPublicKey(data []byte) (si
 	}
 	return
 }
+
+func (key_certificate KeyCertificate) SignatureSize() (size int) {
+	sizes := map[int]int{
+		KEYCERT_SIGN_DSA_SHA1:  40,
+		KEYCERT_SIGN_P256:      64,
+		KEYCERT_SIGN_P384:      96,
+		KEYCERT_SIGN_P521:      132,
+		KEYCERT_SIGN_RSA2048:   256,
+		KEYCERT_SIGN_RSA3072:   384,
+		KEYCERT_SIGN_RSA4096:   512,
+		KEYCERT_SIGN_ED25519:   64,
+		KEYCERT_SIGN_ED25519PH: 64,
+	}
+	key_type, err := key_certificate.SigningPublicKeyType()
+	if err != nil {
+		return 0
+	}
+	return sizes[int(key_type)]
+}

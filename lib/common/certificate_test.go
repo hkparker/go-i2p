@@ -151,8 +151,8 @@ func TestReadCertificateWithInvalidLength(t *testing.T) {
 	bytes := []byte{0x00, 0x00}
 	cert, remainder, err := ReadCertificate(bytes)
 	cert_len := len(cert)
-	if cert_len != 0 {
-		t.Fatal("ReadCertificate() did not return 0 length certificate with invalid length:", cert_len)
+	if cert_len != 2 {
+		t.Fatal("ReadCertificate() did not populate certificate even though data invalid", cert_len)
 	}
 	remainder_len := len(remainder)
 	if remainder_len != 0 {
