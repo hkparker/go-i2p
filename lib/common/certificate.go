@@ -42,7 +42,7 @@ const (
 )
 
 const (
-	CERT_MIN_LENGTH = 3
+	CERT_MIN_SIZE = 3
 )
 
 type Certificate []byte
@@ -53,10 +53,10 @@ type Certificate []byte
 //
 func (certificate Certificate) Type() (cert_type int, err error) {
 	cert_len := len(certificate)
-	if cert_len < CERT_MIN_LENGTH {
+	if cert_len < CERT_MIN_SIZE {
 		log.WithFields(log.Fields{
 			"certificate_bytes_length": cert_len,
-			"reason":                   "too short (len < CERT_MIN_LENGTH)",
+			"reason":                   "too short (len < CERT_MIN_SIZE)",
 		}).Error("invalid certificate")
 		err = errors.New("error parsing certificate length: certificate is too short")
 		return
@@ -76,8 +76,8 @@ func (certificate Certificate) Length() (length int, err error) {
 	if err != nil {
 		return
 	}
-	length = Integer(certificate[1:CERT_MIN_LENGTH])
-	inferred_len := length + CERT_MIN_LENGTH
+	length = Integer(certificate[1:CERT_MIN_SIZE])
+	inferred_len := length + CERT_MIN_SIZE
 	if inferred_len > cert_len {
 		log.WithFields(log.Fields{
 			"certificate_bytes_length": cert_len,
@@ -108,14 +108,14 @@ func (certificate Certificate) Data() (data []byte, err error) {
 		case "error parsing certificate length: certificate is too short":
 			return
 		case "certificate parsing warning: certificate data is shorter than specified by length":
-			data = certificate[CERT_MIN_LENGTH:]
+			data = certificate[CERT_MIN_SIZE:]
 			return
 		case "certificate parsing warning: certificate contains data beyond length":
-			data = certificate[CERT_MIN_LENGTH : length+CERT_MIN_LENGTH]
+			data = certificate[CERT_MIN_SIZE : length+CERT_MIN_SIZE]
 			return
 		}
 	}
-	data = certificate[CERT_MIN_LENGTH:]
+	data = certificate[CERT_MIN_SIZE:]
 	return
 }
 
@@ -127,8 +127,8 @@ func ReadCertificate(data []byte) (certificate Certificate, remainder []byte, er
 	certificate = Certificate(data)
 	length, err := certificate.Length()
 	if err != nil && err.Error() == "certificate parsing warning: certificate contains data beyond length" {
-		certificate = Certificate(data[:length+CERT_MIN_LENGTH])
-		remainder = data[length+CERT_MIN_LENGTH:]
+		certificate = Certificate(data[:length+CERT_MIN_SIZE])
+		remainder = data[length+CERT_MIN_SIZE:]
 		err = nil
 	}
 	return

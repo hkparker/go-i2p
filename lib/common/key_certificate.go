@@ -8,6 +8,7 @@ Accurate for version 0.9.24
 
 import (
 	"errors"
+	log "github.com/Sirupsen/logrus"
 	"github.com/bounce-chat/go-i2p/lib/crypto"
 )
 
@@ -47,25 +48,37 @@ const (
 	KEYCERT_CRYPTO_ELG_SIZE = 256
 )
 
+const (
+	KEYCERT_PUBKEY_SIZE = 256
+	KEYCERT_SPK_SIZE    = 128
+)
+
 type KeyCertificate []byte
 
 //
-// The data contained in the Certificate.
+// The data contained in the Key Certificate.
 //
 func (key_certificate KeyCertificate) Data() ([]byte, error) {
 	return Certificate(key_certificate).Data()
 }
 
 //
-//
+// The SigningPublicKey type this Key Certificate describes and any errors encountered
+// parsing the KeyCertificate.
 //
 func (key_certificate KeyCertificate) SigningPublicKeyType() (signing_pubkey_type int, err error) {
 	data, err := key_certificate.Data()
 	if err != nil {
 		return
 	}
-	if len(data) < 2 {
-		err = errors.New("")
+	data_len := len(data)
+	if data_len < 2 {
+		log.WithFields(log.Fields{
+			"data_len":     data_len,
+			"required_len": 2,
+			"reason":       "not enough data",
+		}).Error("error parsing key certificate")
+		err = errors.New("error parsing key certificate: not enough data")
 		return
 	}
 	signing_pubkey_type = Integer(data[:2])
@@ -73,15 +86,22 @@ func (key_certificate KeyCertificate) SigningPublicKeyType() (signing_pubkey_typ
 }
 
 //
-//
+// The PublicKey type this Key Certificate describes and any errors encountered parsing
+// this KeyCertificate.
 //
 func (key_certificate KeyCertificate) PublicKeyType() (pubkey_type int, err error) {
 	data, err := key_certificate.Data()
 	if err != nil {
 		return
 	}
-	if len(data) < 4 {
-		err = errors.New("")
+	data_len := len(data)
+	if data_len < 4 {
+		log.WithFields(log.Fields{
+			"data_len":     data_len,
+			"required_len": 4,
+			"reason":       "not enough data",
+		}).Error("error parsing key certificate")
+		err = errors.New("error parsing key certificate: not enough data")
 		return
 	}
 	pubkey_type = Integer(data[2:4])
@@ -89,56 +109,70 @@ func (key_certificate KeyCertificate) PublicKeyType() (pubkey_type int, err erro
 }
 
 //
-//
+// Given some bytes, build a PublicKey using any excess data that may be stored in the KeyCertificate and return
+// it along with any errors encountered constructing the PublicKey.
 //
 func (key_certificate KeyCertificate) ConstructPublicKey(data []byte) (public_key crypto.PublicKey, err error) {
 	key_type, err := key_certificate.PublicKeyType()
 	if err != nil {
 		return
 	}
-	if len(data) < 256 {
-		err = errors.New("")
+	data_len := len(data)
+	if data_len < KEYCERT_PUBKEY_SIZE {
+		log.WithFields(log.Fields{
+			"data_len":     data_len,
+			"required_len": KEYCERT_PUBKEY_SIZE,
+			"reason":       "not enough data",
+		}).Error("error constructing public key")
+		err = errors.New("error constucting public key: not enough data")
 		return
 	}
 	switch key_type {
 	case KEYCERT_CRYPTO_ELG:
 		var elg_key crypto.ElgPublicKey
-		copy(elg_key[:], data[256-KEYCERT_CRYPTO_ELG_SIZE:256])
+		copy(elg_key[:], data[KEYCERT_PUBKEY_SIZE-KEYCERT_CRYPTO_ELG_SIZE:KEYCERT_PUBKEY_SIZE])
 		public_key = elg_key
 	}
 	return
 }
 
 //
-//
+// Given some bytes, build a SigningPublicKey using any excess data that may be stored in the KeyCertificate and return
+// it along with any errors encountered constructing the SigningPublicKey.
 //
 func (key_certificate KeyCertificate) ConstructSigningPublicKey(data []byte) (signing_public_key crypto.SigningPublicKey) {
 	signing_key_type, err := key_certificate.PublicKeyType()
 	if err != nil {
 		return
 	}
-	if len(data) < 128 {
-		err = errors.New("")
+	data_len := len(data)
+	if data_len < KEYCERT_SPK_SIZE {
+		log.WithFields(log.Fields{
+			"data_len":     data_len,
+			"required_len": KEYCERT_SPK_SIZE,
+			"reason":       "not enough data",
+		}).Error("error constructing signing public key")
+		err = errors.New("error constucting signing public key: not enough data")
 		return
 	}
 	switch signing_key_type {
 	case KEYCERT_SIGN_DSA_SHA1:
 		var dsa_key crypto.DSAPublicKey
-		copy(dsa_key[:], data[128-KEYCERT_SIGN_DSA_SHA1_SIZE:128])
+		copy(dsa_key[:], data[KEYCERT_SPK_SIZE-KEYCERT_SIGN_DSA_SHA1_SIZE:KEYCERT_SPK_SIZE])
 		signing_public_key = dsa_key
 	case KEYCERT_SIGN_P256:
 		var ec_key crypto.ECP256PublicKey
-		copy(ec_key[:], data[128-KEYCERT_SIGN_P256_SIZE:128])
+		copy(ec_key[:], data[KEYCERT_SPK_SIZE-KEYCERT_SIGN_P256_SIZE:KEYCERT_SPK_SIZE])
 		signing_public_key = ec_key
 	case KEYCERT_SIGN_P384:
 		var ec_key crypto.ECP384PublicKey
-		copy(ec_key[:], data[128-KEYCERT_SIGN_P384_SIZE:128])
+		copy(ec_key[:], data[KEYCERT_SPK_SIZE-KEYCERT_SIGN_P384_SIZE:KEYCERT_SPK_SIZE])
 		signing_public_key = ec_key
 	case KEYCERT_SIGN_P521:
 		var ec_key crypto.ECP521PublicKey
-		extra := KEYCERT_SIGN_P521_SIZE - 128
+		extra := KEYCERT_SIGN_P521_SIZE - KEYCERT_SPK_SIZE
 		copy(ec_key[:], data)
-		copy(ec_key[128:], key_certificate[4:4+extra])
+		copy(ec_key[KEYCERT_SPK_SIZE:], key_certificate[4:4+extra])
 		signing_public_key = ec_key
 	case KEYCERT_SIGN_RSA2048:
 		//var rsa_key crypto.RSA2048PublicKey
@@ -154,6 +188,10 @@ func (key_certificate KeyCertificate) ConstructSigningPublicKey(data []byte) (si
 	return
 }
 
+//
+// Return the size of a Signature corresponding to the Key Certificate's
+// SigningPublicKey type.
+//
 func (key_certificate KeyCertificate) SignatureSize() (size int) {
 	sizes := map[int]int{
 		KEYCERT_SIGN_DSA_SHA1:  40,

@@ -41,7 +41,7 @@ import (
 )
 
 const (
-	ROUTER_ADDRESS_MIN_LENGTH = 9
+	ROUTER_ADDRESS_MIN_SIZE = 9
 )
 
 type RouterAddress []byte
@@ -51,8 +51,7 @@ type RouterAddress []byte
 // parsing the RouterAddress.
 //
 func (router_address RouterAddress) Cost() (cost int, err error) {
-	verr, exit := router_address.checkValid()
-	err = verr
+	err, exit := router_address.checkValid()
 	if exit {
 		return
 	}
@@ -65,12 +64,11 @@ func (router_address RouterAddress) Cost() (cost int, err error) {
 // parsing the RouterAddress.
 //
 func (router_address RouterAddress) Expiration() (date Date, err error) {
-	verr, exit := router_address.checkValid()
-	err = verr
+	err, exit := router_address.checkValid()
 	if exit {
 		return
 	}
-	copy(date[:], router_address[1:ROUTER_ADDRESS_MIN_LENGTH])
+	copy(date[:], router_address[1:ROUTER_ADDRESS_MIN_SIZE])
 	return
 }
 
@@ -79,12 +77,11 @@ func (router_address RouterAddress) Expiration() (date Date, err error) {
 // parsing the RouterAddress.
 //
 func (router_address RouterAddress) TransportStyle() (str String, err error) {
-	verr, exit := router_address.checkValid()
-	err = verr
+	err, exit := router_address.checkValid()
 	if exit {
 		return
 	}
-	str, _, err = ReadString(router_address[ROUTER_ADDRESS_MIN_LENGTH:])
+	str, _, err = ReadString(router_address[ROUTER_ADDRESS_MIN_SIZE:])
 	return
 }
 
@@ -93,12 +90,11 @@ func (router_address RouterAddress) TransportStyle() (str String, err error) {
 // errors encountered parsing the RouterAddress.
 //
 func (router_address RouterAddress) Options() (mapping Mapping, err error) {
-	verr, exit := router_address.checkValid()
-	err = verr
+	err, exit := router_address.checkValid()
 	if exit {
 		return
 	}
-	_, remainder, err := ReadString(router_address[ROUTER_ADDRESS_MIN_LENGTH:])
+	_, remainder, err := ReadString(router_address[ROUTER_ADDRESS_MIN_SIZE:])
 	if len(remainder) == 0 {
 		return
 	}
@@ -118,9 +114,9 @@ func (router_address RouterAddress) checkValid() (err error, exit bool) {
 		}).Error("invalid router address")
 		err = errors.New("error parsing RouterAddress: no data")
 		exit = true
-	} else if addr_len < ROUTER_ADDRESS_MIN_LENGTH {
+	} else if addr_len < ROUTER_ADDRESS_MIN_SIZE {
 		log.WithFields(log.Fields{
-			"reason": "data too small (len < ROUTER_ADDRESS_MIN_LENGTH)",
+			"reason": "data too small (len < ROUTER_ADDRESS_MIN_SIZE)",
 		}).Warn("router address format warning")
 		err = errors.New("warning parsing RouterAddress: data too small")
 	}
@@ -137,8 +133,8 @@ func ReadRouterAddress(data []byte) (router_address RouterAddress, remainder []b
 	if err != nil {
 		return
 	}
-	router_address = append(router_address, data[:ROUTER_ADDRESS_MIN_LENGTH]...)
-	str, remainder, err := ReadString(data[ROUTER_ADDRESS_MIN_LENGTH:])
+	router_address = append(router_address, data[:ROUTER_ADDRESS_MIN_SIZE]...)
+	str, remainder, err := ReadString(data[ROUTER_ADDRESS_MIN_SIZE:])
 	if err != nil {
 		return
 	}
@@ -150,6 +146,6 @@ func ReadRouterAddress(data []byte) (router_address RouterAddress, remainder []b
 		mapping = remainder[:map_size+2]
 		router_address = append(router_address, mapping...)
 	}
-	remainder = data[ROUTER_ADDRESS_MIN_LENGTH+len(str)+len(mapping):]
+	remainder = data[ROUTER_ADDRESS_MIN_SIZE+len(str)+len(mapping):]
 	return
 }
