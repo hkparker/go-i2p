@@ -4,6 +4,26 @@ package common
 I2P Key Certificate
 https://geti2p.net/en/docs/spec/common-structures#type_Certificate
 Accurate for version 0.9.24
+
++----+----+----+----+----+-//
+|type| length  | payload
++----+----+----+----+----+-//
+
+type :: Integer
+        length -> 1 byte
+
+        case 0 -> NULL
+        case 1 -> HASHCASH
+        case 2 -> HIDDEN
+        case 3 -> SIGNED
+        case 4 -> MULTIPLE
+        case 5 -> KEY
+
+length :: Integer
+          length -> 2 bytes
+
+payload :: data
+           length -> $length bytes
 */
 
 import (
@@ -124,7 +144,7 @@ func (key_certificate KeyCertificate) ConstructPublicKey(data []byte) (public_ke
 			"required_len": KEYCERT_PUBKEY_SIZE,
 			"reason":       "not enough data",
 		}).Error("error constructing public key")
-		err = errors.New("error constucting public key: not enough data")
+		err = errors.New("error constructing public key: not enough data")
 		return
 	}
 	switch key_type {
@@ -140,7 +160,7 @@ func (key_certificate KeyCertificate) ConstructPublicKey(data []byte) (public_ke
 // Given some bytes, build a SigningPublicKey using any excess data that may be stored in the KeyCertificate and return
 // it along with any errors encountered constructing the SigningPublicKey.
 //
-func (key_certificate KeyCertificate) ConstructSigningPublicKey(data []byte) (signing_public_key crypto.SigningPublicKey) {
+func (key_certificate KeyCertificate) ConstructSigningPublicKey(data []byte) (signing_public_key crypto.SigningPublicKey, err error) {
 	signing_key_type, err := key_certificate.PublicKeyType()
 	if err != nil {
 		return
@@ -152,7 +172,7 @@ func (key_certificate KeyCertificate) ConstructSigningPublicKey(data []byte) (si
 			"required_len": KEYCERT_SPK_SIZE,
 			"reason":       "not enough data",
 		}).Error("error constructing signing public key")
-		err = errors.New("error constucting signing public key: not enough data")
+		err = errors.New("error constructing signing public key: not enough data")
 		return
 	}
 	switch signing_key_type {

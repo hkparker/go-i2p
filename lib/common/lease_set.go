@@ -164,7 +164,7 @@ func (lease_set LeaseSet) SigningKey() (signing_public_key crypto.SigningPublicK
 			// This LeaseSet's Destination's Certificate is a Key Certificate,
 			// create the signing publickey key using any data that might be
 			// contained in the key certificate.
-			signing_public_key = KeyCertificate(cert).ConstructSigningPublicKey(
+			signing_public_key, err = KeyCertificate(cert).ConstructSigningPublicKey(
 				lease_set[offset : offset+LEASE_SET_SPK_SIZE],
 			)
 		} else {

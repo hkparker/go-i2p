@@ -92,7 +92,7 @@ func (certificate Certificate) Length() (length int, err error) {
 			"certificate_length_field": length,
 			"expected_bytes_length":    inferred_len,
 			"reason":                   "data longer than expected",
-		}).Error("certificate format warning")
+		}).Warn("certificate format warning")
 		err = errors.New("certificate parsing warning: certificate contains data beyond length")
 	}
 	return

@@ -121,7 +121,7 @@ func (keys_and_cert KeysAndCert) SigningPublicKey() (signing_public_key crypto.S
 			// This KeysAndCert contains a Key Certificate, construct
 			// a SigningPublicKey from the data in the KeysAndCert and
 			// any additional data in the Certificate.
-			signing_public_key = KeyCertificate(cert).ConstructSigningPublicKey(
+			signing_public_key, err = KeyCertificate(cert).ConstructSigningPublicKey(
 				keys_and_cert[KEYS_AND_CERT_PUBKEY_SIZE : KEYS_AND_CERT_PUBKEY_SIZE+KEYS_AND_CERT_SPK_SIZE],
 			)
 		} else {
