@@ -1,27 +1,31 @@
 package common
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestIntegerBigEndian(t *testing.T) {
+	assert := assert.New(t)
+
 	bytes := []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}
-	i := Integer(bytes)
-	if i != 1 {
-		t.Fatal("Integer() not big endian")
-	}
+	integer := Integer(bytes)
+
+	assert.Equal(integer, 1, "Integer() did not parse bytes big endian")
 }
 
-func TestWorksWith1Byte(t *testing.T) {
-	i := Integer([]byte{0x01})
-	if i != 1 {
-		t.Fatal("Integer() does not work with 1 byte")
-	}
+func TestWorksWithOneByte(t *testing.T) {
+	assert := assert.New(t)
+
+	integer := Integer([]byte{0x01})
+
+	assert.Equal(integer, 1, "Integer() did not correctly parse single byte slice")
 }
 
 func TestIsZeroWithNoData(t *testing.T) {
-	i := Integer([]byte{})
-	if i != 0 {
-		t.Fatal("Integer() does not work with 0 bytes")
-	}
+	assert := assert.New(t)
+
+	integer := Integer([]byte{})
+
+	assert.Equal(integer, 0, "Integer() did not correctly parse zero length byte slice")
 }

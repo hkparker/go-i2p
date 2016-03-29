@@ -177,21 +177,21 @@ func GoMapToMapping(gomap map[string]string) (mapping Mapping, err error) {
 	return
 }
 
-type ByValue MappingValues
+type byValue MappingValues
 
-func (set ByValue) Len() int      { return len(set) }
-func (set ByValue) Swap(i, j int) { set[i], set[j] = set[j], set[i] }
-func (set ByValue) Less(i, j int) bool {
+func (set byValue) Len() int      { return len(set) }
+func (set byValue) Swap(i, j int) { set[i], set[j] = set[j], set[i] }
+func (set byValue) Less(i, j int) bool {
 	data1, _ := set[i][1].Data()
 	data2, _ := set[j][1].Data()
 	return data1 < data2
 }
 
-type ByKey MappingValues
+type byKey MappingValues
 
-func (set ByKey) Len() int      { return len(set) }
-func (set ByKey) Swap(i, j int) { set[i], set[j] = set[j], set[i] }
-func (set ByKey) Less(i, j int) bool {
+func (set byKey) Len() int      { return len(set) }
+func (set byKey) Swap(i, j int) { set[i], set[j] = set[j], set[i] }
+func (set byKey) Less(i, j int) bool {
 	data1, _ := set[i][0].Data()
 	data2, _ := set[j][0].Data()
 	return data1 < data2
@@ -203,8 +203,8 @@ func (set ByKey) Less(i, j int) bool {
 // than by keys to ensure a consistent order.
 //
 func mappingOrder(values MappingValues) {
-	sort.Stable(ByValue(values))
-	sort.Stable(ByKey(values))
+	sort.Stable(byValue(values))
+	sort.Stable(byKey(values))
 }
 
 //
