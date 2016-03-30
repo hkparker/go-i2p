@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	STRING_MAX_SIZE = 256
+	STRING_MAX_SIZE = 255
 )
 
 type String []byte
@@ -79,7 +79,7 @@ func (str String) Data() (data string, err error) {
 //
 func ToI2PString(data string) (str String, err error) {
 	data_len := len(data)
-	if data_len >= STRING_MAX_SIZE {
+	if data_len > STRING_MAX_SIZE {
 		log.WithFields(log.Fields{
 			"string_len": data_len,
 			"max_len":    STRING_MAX_SIZE,
