@@ -88,10 +88,13 @@ func (keys_and_cert KeysAndCert) PublicKey() (key crypto.PublicKey, err error) {
 		} else {
 			// Key Certificate is not present, return the KEYS_AND_CERT_PUBKEY_SIZE byte
 			// PublicKey space as ElgPublicKey.  No other Certificate
-			// types are currently in use
+			// types are currently in use.
 			var elg_key crypto.ElgPublicKey
 			copy(keys_and_cert[:KEYS_AND_CERT_PUBKEY_SIZE], elg_key[:])
 			key = elg_key
+			log.WithFields(log.Fields{
+				"cert_type": cert_type,
+			}).Warn("unused certificate type observed")
 		}
 
 	}
