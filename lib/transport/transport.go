@@ -28,11 +28,11 @@ type Transport interface {
 	// returns any errors that happen if they do
 	SetIdentity(ident common.RouterIdentity) error
 
-	// Obtain a transport session with a router given its RouterInfo.
+	// Obtain a transport session with a router given the Hash of its RouterInfo.
 	// If a session with this router is NOT already made attempt to create one and block until made or until an error happens
 	// returns an established TransportSession and nil on success
 	// returns nil and an error on error
-	GetSession(routerInfo common.RouterInfo) (TransportSession, error)
+	GetSession(routerInfo common.Hash) (TransportSession, error)
 
 	// return true if a routerInfo is compatable with this transport
 	Compatable(routerInfo common.RouterInfo) bool
