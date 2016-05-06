@@ -1,148 +1,148 @@
 package common
 
-import "testing"
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
 func TestStringReportsCorrectLength(t *testing.T) {
+	assert := assert.New(t)
+
 	str_len, err := String([]byte{0x02, 0x00, 0x00}).Length()
-	if str_len != 2 {
-		t.Fatal("string.Length() did not report correct length")
-	}
-	if err != nil {
-		t.Fatal("string.Length() reported an error on valid string:", err)
-	}
+
+	assert.Equal(str_len, 2, "Length() did not report correct length")
+	assert.Nil(err, "Length() reported an error on valid string")
 }
 
 func TestStringReportsLengthZeroError(t *testing.T) {
+	assert := assert.New(t)
+
 	str_len, err := String(make([]byte, 0)).Length()
-	if str_len != 0 {
-		t.Fatal("string.Length() reported non-zero length on empty slice")
-	}
-	if err == nil || err.Error() != "error parsing string: zero length" {
-		t.Fatal("string.Length() reported incorrect error on zero length slice:", err)
+
+	assert.Equal(str_len, 0, "Length() reported non-zero length on empty slice")
+	if assert.NotNil(err) {
+		assert.Equal(err.Error(), "error parsing string: zero length", "correct error message should be returned")
 	}
 }
 
 func TestStringReportsExtraDataError(t *testing.T) {
+	assert := assert.New(t)
+
 	str_len, err := String([]byte{0x01, 0x00, 0x00}).Length()
-	if str_len != 1 {
-		t.Fatal("string.Length() reported wrong size when extra data present")
-	}
-	if err == nil || err.Error() != "string parsing warning: string contains data beyond length" {
-		t.Fatal("string.Length() reported incorrect error on extra data:", err)
+
+	assert.Equal(str_len, 1, "Length() reported wrong size when extra data present")
+	if assert.NotNil(err) {
+		assert.Equal(err.Error(), "string parsing warning: string contains data beyond length", "correct error message should be returned")
 	}
 }
 
 func TestStringDataReportsLengthZeroError(t *testing.T) {
+	assert := assert.New(t)
+
 	str_len, err := String([]byte{0x01}).Length()
-	if str_len != 1 {
-		t.Fatal("string.Length() reported wrong length with missing data", str_len)
-	}
-	if err == nil || err.Error() != "string parsing warning: string data is shorter than specified by length" {
-		t.Fatal("string.Length() reported wrong error when data was missing", err)
+
+	assert.Equal(str_len, 1, "Length() reported wrong size with missing data")
+	if assert.NotNil(err) {
+		assert.Equal(err.Error(), "string parsing warning: string data is shorter than specified by length", "correct error message should be returned")
 	}
 }
 
 func TestStringDataReportsExtraDataError(t *testing.T) {
+	assert := assert.New(t)
+
 	data, err := String([]byte{0x01, 0x00, 0x01}).Data()
 	data_len := len(data)
-	if data_len != 1 {
-		t.Fatal("string.Data() returned wrong size data for length with extra data:", data_len)
-	}
-	if err == nil || err.Error() != "string parsing warning: string contains data beyond length" {
-		t.Fatal("string.Length() reported wrong error with extra data", err)
+
+	assert.Equal(data_len, 1, "Data() reported wrong size on string with extra data")
+	if assert.NotNil(err) {
+		assert.Equal(err.Error(), "string parsing warning: string contains data beyond length", "correct error message should be returned")
 	}
 }
 
 func TestStringDataEmptyWhenZeroLength(t *testing.T) {
+	assert := assert.New(t)
+
 	data, err := String(make([]byte, 0)).Data()
-	data_len := len(data)
-	if data_len != 0 {
-		t.Fatal("string.Data() returned data when none was present:", data_len)
-	}
-	if err == nil || err.Error() != "error parsing string: zero length" {
-		t.Fatal("string.Length() reported wrong error with no data", err)
+
+	assert.Equal(len(data), 0, "Data() returned data when none was present:")
+	if assert.NotNil(err) {
+		assert.Equal(err.Error(), "error parsing string: zero length", "correct error message should be returned")
 	}
 }
 
 func TestStringDataErrorWhenNonZeroLengthOnly(t *testing.T) {
+	assert := assert.New(t)
+
 	data, err := String([]byte{0x01}).Data()
-	data_len := len(data)
-	if data_len != 0 {
-		t.Fatal("string.Data() returned data when only length was present:", data_len)
-	}
-	if err == nil || err.Error() != "string parsing warning: string data is shorter than specified by length" {
-		t.Fatal("string.Length() reported wrong error with length but no data", err)
+
+	assert.Equal(len(data), 0, "Data() returned data when only length was present")
+	if assert.NotNil(err) {
+		assert.Equal(err.Error(), "string parsing warning: string data is shorter than specified by length", "correct error message should be returned")
 	}
 }
 
 func TestToI2PStringFormatsCorrectly(t *testing.T) {
-	i2p_string, err := ToI2PString(string([]byte{0x22, 0x33}))
-	if err != nil {
-		t.Fatal("ToI2PString() returned error on valid data:", err)
-	}
-	if i2p_string[0] != 0x02 {
-		t.Fatal("ToI2PString() did not prepend the correct length")
-	}
-	if i2p_string[1] != 0x22 && i2p_string[2] != 0x33 {
-		t.Fatal("ToI2PString() did not preserve string")
-	}
+	assert := assert.New(t)
+
+	i2p_string, err := ToI2PString(string([]byte{0x08, 0x09}))
+
+	assert.Nil(err, "ToI2PString() returned error on valid data")
+	assert.Equal(2, int(i2p_string[0]), "ToI2PString() did not prepend the correct length")
+	assert.Equal(8, int(i2p_string[1]), "ToI2PString() did not include string")
+	assert.Equal(9, int(i2p_string[2]), "ToI2PString() did not include string")
 }
 
 func TestToI2PStringReportsOverflows(t *testing.T) {
+	assert := assert.New(t)
+
 	i2p_string, err := ToI2PString(string(make([]byte, 256)))
-	if len(i2p_string) != 0 {
-		t.Fatal("ToI2PString() returned data when overflowed")
+
+	assert.Equal(len(i2p_string), 0, "ToI2PString() returned data when overflowed")
+	if assert.NotNil(err) {
+		assert.Equal(err.Error(), "cannot store that much data in I2P string", "correct error message should be returned")
 	}
-	if err == nil || err.Error() != "cannot store that much data in I2P string" {
-		t.Fatal("ToI2pString() did not report overflow")
-	}
+
 	_, err = ToI2PString(string(make([]byte, 255)))
-	if err != nil {
-		t.Fatal("ToI2PString() reported error with acceptable size:", err)
-	}
+
+	assert.Nil(err, "ToI2PString() reported error with acceptable size")
 }
 
 func TestReadStringReadsLength(t *testing.T) {
+	assert := assert.New(t)
+
 	bytes := []byte{0x01, 0x04, 0x06}
 	str, remainder, err := ReadString(bytes)
-	if err == nil || err.Error() != "string parsing warning: string contains data beyond length" {
-		t.Fatal("ReadString() returned incorrect error,", err)
-	}
-	if len(str) != 2 {
-		t.Fatal("ReadString() did not return correct string length:", len(str))
-	}
-	if str[0] != 0x01 && str[1] != 0x04 {
-		t.Fatal("ReadString() did not return correct string")
-	}
-	if len(remainder) != 1 {
-		t.Fatal("ReadString() did not return correct remainder length")
-	}
-	if remainder[0] != 0x06 {
-		t.Fatal("ReadString() did not return correct remainder")
-	}
+
+	assert.Nil(err, "ReadString() returned error reading string with extra data")
+	assert.Equal(len(str), 2, "ReadString() did not return correct string length")
+	assert.Equal(1, int(str[0]), "ReadString() did not return correct string")
+	assert.Equal(4, int(str[1]), "ReadString() did not return correct string")
+	assert.Equal(len(remainder), 1, "ReadString() did not return correct remainder length")
+	assert.Equal(6, int(remainder[0]), "ReadString() did not return correct remainder")
 }
 
 func TestReadStringErrWhenEmptySlice(t *testing.T) {
+	assert := assert.New(t)
+
 	bytes := make([]byte, 0)
 	_, _, err := ReadString(bytes)
-	if err == nil || err.Error() != "error parsing string: zero length" {
-		t.Fatal("ReadString() did not report empty slice error", err)
+
+	if assert.NotNil(err) {
+		assert.Equal(err.Error(), "error parsing string: zero length", "correct error message should be returned")
 	}
 }
 
 func TestReadStringErrWhenDataTooShort(t *testing.T) {
+	assert := assert.New(t)
+
 	short_str := []byte{0x03, 0x01}
 	str, remainder, err := ReadString(short_str)
-	if err == nil || err.Error() != "string parsing warning: string data is shorter than specified by length" {
-		t.Fatal("ReadString() did not report string too long:", err)
+
+	if assert.NotNil(err) {
+		assert.Equal(err.Error(), "string parsing warning: string data is shorter than specified by length", "correct error message should be returned")
 	}
-	if len(str) != 2 {
-		t.Fatal("ReadString() did not return the slice as string when too long")
-	}
-	if str[0] != 0x03 && str[1] != 0x01 {
-		t.Fatal("ReadString() did not return the correct partial string")
-	}
-	if len(remainder) != 0 {
-		t.Fatal("ReadString() returned a remainder when the string data was too short")
-	}
+	assert.Equal(len(str), 2, "ReadString() did not return the slice as string when too long")
+	assert.Equal(3, int(str[0]), "ReadString() did not return the correct partial string")
+	assert.Equal(1, int(str[1]), "ReadString() did not return the correct partial string")
+	assert.Equal(len(remainder), 0, "ReadString() returned a remainder when the string data was too short")
 }

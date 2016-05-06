@@ -1,23 +1,31 @@
 package common
 
+/*
+I2P Integer
+https://geti2p.net/en/docs/spec/common-structures#type_Integer
+Accurate for version 0.9.24
+*/
+
 import (
 	"encoding/binary"
 )
 
+const (
+	INTEGER_SIZE = 8
+)
+
 //
-// Interpret a slice of bytes from length 1
-// to length 8 as a big-endian integer and
-// return an int representation.
+// Interpret a slice of bytes from length 0 to length 8 as a big-endian
+// integer and return an int representation.
 //
-func Integer(number []byte) int {
+func Integer(number []byte) (value int) {
 	num_len := len(number)
-	if num_len < 8 {
+	if num_len < INTEGER_SIZE {
 		number = append(
-			make([]byte, 8-num_len),
+			make([]byte, INTEGER_SIZE-num_len),
 			number...,
 		)
 	}
-	return int(
-		binary.BigEndian.Uint64(number),
-	)
+	value = int(binary.BigEndian.Uint64(number))
+	return
 }

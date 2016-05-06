@@ -1,11 +1,15 @@
 package common
 
-import "testing"
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
 func TestTimeFromMiliseconds(t *testing.T) {
+	assert := assert.New(t)
+
 	next_day := Date{0x00, 0x00, 0x00, 0x00, 0x05, 0x26, 0x5c, 0x00}
 	go_time := next_day.Time()
-	if go_time.Unix() != 86400 {
-		t.Fatal("Date.Time() did not parse time in milliseconds")
-	}
+
+	assert.Equal(go_time.Unix(), int64(86400), "Date.Time() did not parse time in milliseconds")
 }
