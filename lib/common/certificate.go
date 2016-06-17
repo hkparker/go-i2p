@@ -55,6 +55,7 @@ func (certificate Certificate) Type() (cert_type int, err error) {
 	cert_len := len(certificate)
 	if cert_len < CERT_MIN_SIZE {
 		log.WithFields(log.Fields{
+			"at": "(Certificate) Type",
 			"certificate_bytes_length": cert_len,
 			"reason":                   "too short (len < CERT_MIN_SIZE)",
 		}).Error("invalid certificate")
@@ -80,6 +81,7 @@ func (certificate Certificate) Length() (length int, err error) {
 	inferred_len := length + CERT_MIN_SIZE
 	if inferred_len > cert_len {
 		log.WithFields(log.Fields{
+			"at": "(Certificate) Length",
 			"certificate_bytes_length": cert_len,
 			"certificate_length_field": length,
 			"expected_bytes_length":    inferred_len,
@@ -88,6 +90,7 @@ func (certificate Certificate) Length() (length int, err error) {
 		err = errors.New("certificate parsing warning: certificate data is shorter than specified by length")
 	} else if cert_len > inferred_len {
 		log.WithFields(log.Fields{
+			"at": "(Certificate) Length",
 			"certificate_bytes_length": cert_len,
 			"certificate_length_field": length,
 			"expected_bytes_length":    inferred_len,

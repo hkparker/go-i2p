@@ -110,12 +110,14 @@ func (router_address RouterAddress) checkValid() (err error, exit bool) {
 	exit = false
 	if addr_len == 0 {
 		log.WithFields(log.Fields{
+			"at":     "(RouterAddress) checkValid",
 			"reason": "no data",
 		}).Error("invalid router address")
 		err = errors.New("error parsing RouterAddress: no data")
 		exit = true
 	} else if addr_len < ROUTER_ADDRESS_MIN_SIZE {
 		log.WithFields(log.Fields{
+			"at":     "(RouterAddress) checkValid",
 			"reason": "data too small (len < ROUTER_ADDRESS_MIN_SIZE)",
 		}).Warn("router address format warning")
 		err = errors.New("warning parsing RouterAddress: data too small")

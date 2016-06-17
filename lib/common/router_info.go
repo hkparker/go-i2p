@@ -97,6 +97,7 @@ func (router_info RouterInfo) Published() (date Date, err error) {
 	remainder_len := len(remainder)
 	if remainder_len < 8 {
 		log.WithFields(log.Fields{
+			"at":           "(RouterInfo) Published",
 			"data_len":     remainder_len,
 			"required_len": 8,
 			"reason":       "not enough data",
@@ -116,6 +117,7 @@ func (router_info RouterInfo) RouterAddressCount() (count int, err error) {
 	remainder_len := len(remainder)
 	if remainder_len < 9 {
 		log.WithFields(log.Fields{
+			"at":           "(RouterInfo) RouterAddressCount",
 			"data_len":     remainder_len,
 			"required_len": 9,
 			"reason":       "not enough data",
@@ -136,6 +138,7 @@ func (router_info RouterInfo) RouterAddresses() (router_addresses []RouterAddres
 	remainder_len := len(remainder)
 	if remainder_len < 9 {
 		log.WithFields(log.Fields{
+			"at":           "(RouterInfo) RouterAddresses",
 			"data_len":     remainder_len,
 			"required_len": 9,
 			"reason":       "not enough data",

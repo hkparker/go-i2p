@@ -94,6 +94,7 @@ func (keys_and_cert KeysAndCert) PublicKey() (key crypto.PublicKey, err error) {
 			copy(keys_and_cert[:KEYS_AND_CERT_PUBKEY_SIZE], elg_key[:])
 			key = elg_key
 			log.WithFields(log.Fields{
+				"at":        "(KeysAndCert) PublicKey",
 				"cert_type": cert_type,
 			}).Warn("unused certificate type observed")
 		}
@@ -149,6 +150,7 @@ func (keys_and_cert KeysAndCert) Certificate() (cert Certificate, err error) {
 	keys_cert_len := len(keys_and_cert)
 	if keys_cert_len < KEYS_AND_CERT_MIN_SIZE {
 		log.WithFields(log.Fields{
+			"at":           "(KeysAndCert) Certificate",
 			"data_len":     keys_cert_len,
 			"required_len": KEYS_AND_CERT_MIN_SIZE,
 			"reason":       "not enough data",
@@ -168,6 +170,7 @@ func ReadKeysAndCert(data []byte) (keys_and_cert KeysAndCert, remainder []byte, 
 	data_len := len(data)
 	if data_len < KEYS_AND_CERT_MIN_SIZE {
 		log.WithFields(log.Fields{
+			"at":           "ReadKeysAndCert",
 			"data_len":     data_len,
 			"required_len": KEYS_AND_CERT_MIN_SIZE,
 			"reason":       "not enough data",

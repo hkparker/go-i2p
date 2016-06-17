@@ -94,6 +94,7 @@ func (key_certificate KeyCertificate) SigningPublicKeyType() (signing_pubkey_typ
 	data_len := len(data)
 	if data_len < 2 {
 		log.WithFields(log.Fields{
+			"at":           "(KeyCertificate) SigningPublicKeyType",
 			"data_len":     data_len,
 			"required_len": 2,
 			"reason":       "not enough data",
@@ -117,6 +118,7 @@ func (key_certificate KeyCertificate) PublicKeyType() (pubkey_type int, err erro
 	data_len := len(data)
 	if data_len < 4 {
 		log.WithFields(log.Fields{
+			"at":           "(KeyCertificate) PublicKeyType",
 			"data_len":     data_len,
 			"required_len": 4,
 			"reason":       "not enough data",
@@ -140,6 +142,7 @@ func (key_certificate KeyCertificate) ConstructPublicKey(data []byte) (public_ke
 	data_len := len(data)
 	if data_len < KEYCERT_PUBKEY_SIZE {
 		log.WithFields(log.Fields{
+			"at":           "(KeyCertificate) ConstructPublicKey",
 			"data_len":     data_len,
 			"required_len": KEYCERT_PUBKEY_SIZE,
 			"reason":       "not enough data",
@@ -168,6 +171,7 @@ func (key_certificate KeyCertificate) ConstructSigningPublicKey(data []byte) (si
 	data_len := len(data)
 	if data_len < KEYCERT_SPK_SIZE {
 		log.WithFields(log.Fields{
+			"at":           "(KeyCertificate) ConstructSigningPublicKey",
 			"data_len":     data_len,
 			"required_len": KEYCERT_SPK_SIZE,
 			"reason":       "not enough data",

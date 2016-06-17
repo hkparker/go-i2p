@@ -111,6 +111,7 @@ func (lease_set LeaseSet) PublicKey() (public_key crypto.ElgPublicKey, err error
 	remainder_len := len(remainder)
 	if remainder_len < LEASE_SET_PUBKEY_SIZE {
 		log.WithFields(log.Fields{
+			"at":           "(LeaseSet) PublicKey",
 			"data_len":     remainder_len,
 			"required_len": LEASE_SET_PUBKEY_SIZE,
 			"reason":       "not enough data",
@@ -144,6 +145,7 @@ func (lease_set LeaseSet) SigningKey() (signing_public_key crypto.SigningPublicK
 	lease_set_len := len(lease_set)
 	if lease_set_len < offset+LEASE_SET_SPK_SIZE {
 		log.WithFields(log.Fields{
+			"at":           "(LeaseSet) SigningKey",
 			"data_len":     lease_set_len,
 			"required_len": offset + LEASE_SET_SPK_SIZE,
 			"reason":       "not enough data",
@@ -190,6 +192,7 @@ func (lease_set LeaseSet) LeaseCount() (count int, err error) {
 	remainder_len := len(remainder)
 	if remainder_len < LEASE_SET_PUBKEY_SIZE+LEASE_SET_SPK_SIZE+1 {
 		log.WithFields(log.Fields{
+			"at":           "(LeaseSet) LeaseCount",
 			"data_len":     remainder_len,
 			"required_len": LEASE_SET_PUBKEY_SIZE + LEASE_SET_SPK_SIZE + 1,
 			"reason":       "not enough data",
@@ -220,6 +223,7 @@ func (lease_set LeaseSet) Leases() (leases []Lease, err error) {
 		lease_set_len := len(lease_set)
 		if lease_set_len < end {
 			log.WithFields(log.Fields{
+				"at":           "(LeaseSet) Leases",
 				"data_len":     lease_set_len,
 				"required_len": end,
 				"reason":       "some leases missing",
@@ -266,6 +270,7 @@ func (lease_set LeaseSet) Signature() (signature Signature, err error) {
 	lease_set_len := len(lease_set)
 	if lease_set_len < end {
 		log.WithFields(log.Fields{
+			"at":           "(LeaseSet) Signature",
 			"data_len":     lease_set_len,
 			"required_len": end,
 			"reason":       "not enough data",

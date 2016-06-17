@@ -51,6 +51,7 @@ func (mapping Mapping) Values() (map_values MappingValues, errs []error) {
 	mapping_len := len(mapping)
 	if mapping_len > inferred_length {
 		log.WithFields(log.Fields{
+			"at": "(Mapping) Values",
 			"mappnig_bytes_length":  mapping_len,
 			"mapping_length_field":  length,
 			"expected_bytes_length": inferred_length,
@@ -59,6 +60,7 @@ func (mapping Mapping) Values() (map_values MappingValues, errs []error) {
 		errs = append(errs, errors.New("warning parsing mapping: data exists beyond length of mapping"))
 	} else if inferred_length > mapping_len {
 		log.WithFields(log.Fields{
+			"at": "(Mapping) Values",
 			"mappnig_bytes_length":  mapping_len,
 			"mapping_length_field":  length,
 			"expected_bytes_length": inferred_length,
@@ -80,6 +82,7 @@ func (mapping Mapping) Values() (map_values MappingValues, errs []error) {
 		}
 		if !beginsWith(remainder, 0x3d) {
 			log.WithFields(log.Fields{
+				"at":     "(Mapping) Values",
 				"reason": "expected =",
 			}).Warn("mapping format violation")
 			errs = append(errs, errors.New("mapping format violation, expected ="))
@@ -99,6 +102,7 @@ func (mapping Mapping) Values() (map_values MappingValues, errs []error) {
 		}
 		if !beginsWith(remainder, 0x3b) {
 			log.WithFields(log.Fields{
+				"at":     "(Mapping) Values",
 				"reason": "expected ;",
 			}).Warn("mapping format violation")
 			errs = append(errs, errors.New("mapping format violation, expected ;"))
