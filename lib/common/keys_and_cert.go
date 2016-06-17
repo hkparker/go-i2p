@@ -2,7 +2,7 @@ package common
 
 /*
 I2P KeysAndCert
-https://geti2p.net/en/docs/spec/common-structures#struct_KeysAndCert
+https://geti2p.net/spec/common-structures#keysandcert
 Accurate for version 0.9.24
 
 +----+----+----+----+----+----+----+----+
@@ -55,6 +55,7 @@ const (
 	KEYS_AND_CERT_PUBKEY_SIZE = 256
 	KEYS_AND_CERT_SPK_SIZE    = 128
 	KEYS_AND_CERT_MIN_SIZE    = 387
+	KEYS_AND_CERT_DATA_SIZE   = 384
 )
 
 type KeysAndCert []byte
@@ -155,7 +156,7 @@ func (keys_and_cert KeysAndCert) Certificate() (cert Certificate, err error) {
 		err = errors.New("error parsing KeysAndCert: data is smaller than minimum valid size")
 		return
 	}
-	cert, _, err = ReadCertificate(keys_and_cert[KEYS_AND_CERT_PUBKEY_SIZE+KEYS_AND_CERT_SPK_SIZE:])
+	cert, _, err = ReadCertificate(keys_and_cert[KEYS_AND_CERT_DATA_SIZE:])
 	return
 }
 
@@ -174,14 +175,14 @@ func ReadKeysAndCert(data []byte) (keys_and_cert KeysAndCert, remainder []byte, 
 		err = errors.New("error parsing KeysAndCert: data is smaller than minimum valid size")
 		return
 	}
-	copy(data[:KEYS_AND_CERT_MIN_SIZE], keys_and_cert)
+	keys_and_cert = KeysAndCert(data[:KEYS_AND_CERT_MIN_SIZE])
 	cert, _ := keys_and_cert.Certificate()
-	n, err := cert.Length()
-	if err != nil {
+	cert_len, _ := cert.Length()
+	if cert_len == 0 {
 		remainder = data[KEYS_AND_CERT_MIN_SIZE:]
 		return
 	}
-	keys_and_cert = append(keys_and_cert, data[KEYS_AND_CERT_MIN_SIZE:n+3]...)
-	remainder = data[KEYS_AND_CERT_MIN_SIZE+n+3:]
+	keys_and_cert = append(keys_and_cert, data[KEYS_AND_CERT_MIN_SIZE:KEYS_AND_CERT_MIN_SIZE+cert_len]...)
+	remainder = data[KEYS_AND_CERT_MIN_SIZE+cert_len:]
 	return
 }
