@@ -180,12 +180,17 @@ func ReadKeysAndCert(data []byte) (keys_and_cert KeysAndCert, remainder []byte, 
 	}
 	keys_and_cert = KeysAndCert(data[:KEYS_AND_CERT_MIN_SIZE])
 	cert, _ := keys_and_cert.Certificate()
-	cert_len, _ := cert.Length()
+	cert_len, cert_len_err := cert.Length()
 	if cert_len == 0 {
 		remainder = data[KEYS_AND_CERT_MIN_SIZE:]
 		return
 	}
-	keys_and_cert = append(keys_and_cert, data[KEYS_AND_CERT_MIN_SIZE:KEYS_AND_CERT_MIN_SIZE+cert_len]...)
-	remainder = data[KEYS_AND_CERT_MIN_SIZE+cert_len:]
+	if data_len < KEYS_AND_CERT_MIN_SIZE+cert_len {
+		keys_and_cert = append(keys_and_cert, data[KEYS_AND_CERT_MIN_SIZE:]...)
+		err = cert_len_err
+	} else {
+		keys_and_cert = append(keys_and_cert, data[KEYS_AND_CERT_MIN_SIZE:KEYS_AND_CERT_MIN_SIZE+cert_len]...)
+		remainder = data[KEYS_AND_CERT_MIN_SIZE+cert_len:]
+	}
 	return
 }
