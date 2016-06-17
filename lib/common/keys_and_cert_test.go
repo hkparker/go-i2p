@@ -42,6 +42,27 @@ func TestSigningPublicKeyWithOtherCertType(t *testing.T) {
 }
 
 func TestReadKeysAndCertWithMissingData(t *testing.T) {
+	assert := assert.New(t)
+
+	cert_data := make([]byte, 128)
+	keys_and_cert, remainder, err := ReadKeysAndCert(cert_data)
+	assert.Equal(0, len(remainder))
+	if assert.NotNil(err) {
+		assert.Equal("error parsing KeysAndCert: data is smaller than minimum valid size", err.Error())
+	}
+
+	_, err = keys_and_cert.PublicKey()
+	if assert.NotNil(err) {
+		assert.Equal("error parsing KeysAndCert: data is smaller than minimum valid size", err.Error())
+	}
+	_, err = keys_and_cert.SigningPublicKey()
+	if assert.NotNil(err) {
+		assert.Equal("error parsing KeysAndCert: data is smaller than minimum valid size", err.Error())
+	}
+	_, err = keys_and_cert.Certificate()
+	if assert.NotNil(err) {
+		assert.Equal("error parsing KeysAndCert: data is smaller than minimum valid size", err.Error())
+	}
 }
 
 func TestReadKeysAndCertWithMissingCertData(t *testing.T) {

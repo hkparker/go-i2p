@@ -66,6 +66,9 @@ type KeysAndCert []byte
 //
 func (keys_and_cert KeysAndCert) PublicKey() (key crypto.PublicKey, err error) {
 	cert, err := keys_and_cert.Certificate()
+	if err != nil {
+		return
+	}
 	cert_len, err := cert.Length()
 	if err != nil {
 		return
@@ -109,6 +112,9 @@ func (keys_and_cert KeysAndCert) PublicKey() (key crypto.PublicKey, err error) {
 //
 func (keys_and_cert KeysAndCert) SigningPublicKey() (signing_public_key crypto.SigningPublicKey, err error) {
 	cert, err := keys_and_cert.Certificate()
+	if err != nil {
+		return
+	}
 	cert_len, err := cert.Length()
 	if err != nil {
 		return
