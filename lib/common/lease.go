@@ -2,7 +2,7 @@ package common
 
 /*
 I2P Lease
-https://geti2p.net/en/docs/spec/common-structures#struct_Lease
+https://geti2p.net/spec/common-structures#lease
 Accurate for version 0.9.24
 
 +----+----+----+----+----+----+----+----+

@@ -2,7 +2,7 @@ package common
 
 /*
 I2P Date
-https://geti2p.net/en/docs/spec/common-structures#type_Date
+https://geti2p.net/spec/common-structures#date
 Accurate for version 0.9.24
 */
 

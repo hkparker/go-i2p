@@ -2,7 +2,7 @@ package common
 
 /*
 I2P RouterInfo
-https://geti2p.net/en/docs/spec/common-structures#struct_RouterInfo
+https://geti2p.net/spec/common-structures#routerinfo
 Accurate for version 0.9.24
 
 +----+----+----+----+----+----+----+----+
@@ -167,7 +167,7 @@ func (router_info RouterInfo) RouterAddresses() (router_addresses []RouterAddres
 //
 func (router_info RouterInfo) PeerSize() int {
 	// Peer size is unused:
-	// https://geti2p.net/en/docs/spec/common-structures#struct_RouterAddress
+	// https://geti2p.net/spec/common-structures#routeraddress
 	return 0
 }
 

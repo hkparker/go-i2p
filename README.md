@@ -1,10 +1,10 @@
 # go-i2p
 
-A pure go implementation of the I2P router
+A pure Go implementation of the I2P router.
 
 ## Status
 
-go-i2p is in early development.  The common data structures are starting to get 
+go-i2p is in early development.
 
 ## Contributing
 

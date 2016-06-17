@@ -2,7 +2,7 @@ package common
 
 /*
 I2P Mapping
-https://geti2p.net/en/docs/spec/common-structures#type_Mapping
+https://geti2p.net/spec/common-structures#mapping
 Accurate for version 0.9.24
 
 +----+----+----+----+----+----+----+----+

@@ -2,7 +2,7 @@ package common
 
 /*
 I2P Certificate
-https://geti2p.net/spec/common-structures#type-certificate
+https://geti2p.net/spec/common-structures#certificate
 Accurate for version 0.9.24
 
 +----+----+----+----+----+-//

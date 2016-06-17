@@ -2,7 +2,7 @@ package common
 
 /*
 I2P String
-https://geti2p.net/en/docs/spec/common-structures#type_String
+https://geti2p.net/spec/common-structures#string
 Accurate for version 0.9.24
 */
 

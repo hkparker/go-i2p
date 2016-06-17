@@ -2,7 +2,7 @@ package common
 
 /*
 I2P RouterAddress
-https://geti2p.net/en/docs/spec/common-structures#struct_RouterAddress
+https://geti2p.net/spec/common-structures#routeraddress
 Accurate for version 0.9.24
 
 +----+----+----+----+----+----+----+----+

@@ -2,7 +2,7 @@ package common
 
 /*
 I2P Destination
-https://geti2p.net/en/docs/spec/common-structures#struct_Destination
+https://geti2p.net/spec/common-structures#destination
 Accurate for version 0.9.24
 
 Identical to KeysAndCert
