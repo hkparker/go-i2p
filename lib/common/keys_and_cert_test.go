@@ -39,28 +39,132 @@ func TestCertificateWithValidData(t *testing.T) {
 	}
 }
 
-func TestPublicKeyWithBadCertificate(t *testing.T) {
+func TestPublicKeyWithBadData(t *testing.T) {
+	assert := assert.New(t)
+
+	cert_data := []byte{0x05, 0x00, 0x04, 0x00, 0x01, 0x00, 0x00}
+	pub_key_data := make([]byte, 193)
+	data := make([]byte, 128)
+	data = append(data, pub_key_data...)
+	data = append(data, cert_data...)
+	keys_and_cert := KeysAndCert(data)
+
+	pub_key, err := keys_and_cert.PublicKey()
+	if assert.NotNil(err) {
+		assert.Equal("error parsing KeysAndCert: data is smaller than minimum valid size", err.Error())
+	}
+	assert.Nil(pub_key)
 }
 
-func TestPublicKeyWithZeroLengthCertificate(t *testing.T) {
+func TestPublicKeyWithBadCertificate(t *testing.T) {
+	assert := assert.New(t)
+
+	cert_data := []byte{0x05, 0x00, 0x04, 0x00, 0x01}
+	pub_key_data := make([]byte, 256)
+	data := make([]byte, 128)
+	data = append(data, pub_key_data...)
+	data = append(data, cert_data...)
+	keys_and_cert := KeysAndCert(data)
+
+	pub_key, err := keys_and_cert.PublicKey()
+	if assert.NotNil(err) {
+		assert.Equal("certificate parsing warning: certificate data is shorter than specified by length", err.Error())
+	}
+	assert.Nil(pub_key)
+}
+
+func TestPublicKeyWithNullCertificate(t *testing.T) {
+	assert := assert.New(t)
+
+	cert_data := []byte{0x00, 0x00, 0x00}
+	pub_key_data := make([]byte, 256)
+	data := make([]byte, 128)
+	data = append(data, pub_key_data...)
+	data = append(data, cert_data...)
+	keys_and_cert := KeysAndCert(data)
+
+	pub_key, err := keys_and_cert.PublicKey()
+	assert.Nil(err)
+	assert.Equal(len(pub_key_data), pub_key.Len())
 }
 
 func TestPublicKeyWithKeyCertificate(t *testing.T) {
+	assert := assert.New(t)
+
+	cert_data := []byte{0x05, 0x00, 0x04, 0x00, 0x01, 0x00, 0x00}
+	pub_key_data := make([]byte, 256)
+	data := make([]byte, 128)
+	data = append(data, pub_key_data...)
+	data = append(data, cert_data...)
+	keys_and_cert := KeysAndCert(data)
+
+	pub_key, err := keys_and_cert.PublicKey()
+	assert.Nil(err)
+	assert.Equal(len(pub_key_data), pub_key.Len())
 }
 
-func TestPublicKeyWithOtherCertType(t *testing.T) {
+func TestSigningPublicKeyWithBadData(t *testing.T) {
+	assert := assert.New(t)
+
+	cert_data := []byte{0x05, 0x00, 0x04, 0x00, 0x01, 0x00, 0x00}
+	pub_key_data := make([]byte, 256)
+	data := make([]byte, 93)
+	data = append(data, pub_key_data...)
+	data = append(data, cert_data...)
+	keys_and_cert := KeysAndCert(data)
+
+	signing_pub_key, err := keys_and_cert.SigningPublicKey()
+	if assert.NotNil(err) {
+		assert.Equal("error parsing KeysAndCert: data is smaller than minimum valid size", err.Error())
+	}
+	assert.Nil(signing_pub_key)
 }
 
 func TestSigningPublicKeyWithBadCertificate(t *testing.T) {
+	assert := assert.New(t)
+
+	cert_data := []byte{0x05, 0x00, 0x04, 0x00, 0x01}
+	pub_key_data := make([]byte, 256)
+	data := make([]byte, 128)
+	data = append(data, pub_key_data...)
+	data = append(data, cert_data...)
+	keys_and_cert := KeysAndCert(data)
+
+	signing_pub_key, err := keys_and_cert.SigningPublicKey()
+	if assert.NotNil(err) {
+		assert.Equal("certificate parsing warning: certificate data is shorter than specified by length", err.Error())
+	}
+	assert.Nil(signing_pub_key)
 }
 
-func TestSigningPublicKeyWithZeroLengthCertificate(t *testing.T) {
+func TestSigningPublicKeyWithNullCertificate(t *testing.T) {
+	assert := assert.New(t)
+
+	cert_data := []byte{0x00, 0x00, 0x00}
+	pub_key_data := make([]byte, 256)
+	signing_pub_key_data := make([]byte, 128)
+	data := append(pub_key_data, signing_pub_key_data...)
+	data = append(data, cert_data...)
+	keys_and_cert := KeysAndCert(data)
+
+	signing_pub_key, err := keys_and_cert.SigningPublicKey()
+	assert.Nil(err)
+	assert.Equal(len(signing_pub_key_data), signing_pub_key.Len())
 }
 
 func TestSigningPublicKeyWithKeyCertificate(t *testing.T) {
-}
+	assert := assert.New(t)
 
-func TestSigningPublicKeyWithOtherCertType(t *testing.T) {
+	cert_data := []byte{0x05, 0x00, 0x04, 0x00, 0x01, 0x00, 0x00}
+	pub_key_data := make([]byte, 256)
+	signing_pub_key_data := make([]byte, 128)
+	data := append(pub_key_data, signing_pub_key_data...)
+	data = append(data, cert_data...)
+	keys_and_cert := KeysAndCert(data)
+
+	signing_pub_key, err := keys_and_cert.SigningPublicKey()
+	assert.Nil(err)
+	assert.Equal(len(signing_pub_key_data), signing_pub_key.Len())
 }
 
 func TestReadKeysAndCertWithMissingData(t *testing.T) {
