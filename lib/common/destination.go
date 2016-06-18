@@ -9,9 +9,9 @@ Identical to KeysAndCert
 */
 
 import (
-	"github.com/bounce-chat/go-i2p/lib/common/base32"
-	"github.com/bounce-chat/go-i2p/lib/common/base64"
-	"github.com/bounce-chat/go-i2p/lib/crypto"
+	"github.com/hkparker/go-i2p/lib/common/base32"
+	"github.com/hkparker/go-i2p/lib/common/base64"
+	"github.com/hkparker/go-i2p/lib/crypto"
 	"strings"
 )
 

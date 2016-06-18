@@ -41,6 +41,7 @@ const (
 	CERT_KEY
 )
 
+// Minimum size of a valid Certificate
 const (
 	CERT_MIN_SIZE = 3
 )

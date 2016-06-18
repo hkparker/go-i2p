@@ -29,7 +29,7 @@ payload :: data
 import (
 	"errors"
 	log "github.com/Sirupsen/logrus"
-	"github.com/bounce-chat/go-i2p/lib/crypto"
+	"github.com/hkparker/go-i2p/lib/crypto"
 )
 
 // Key Certificate Signing Key Types
@@ -68,6 +68,7 @@ const (
 	KEYCERT_CRYPTO_ELG_SIZE = 256
 )
 
+// Sizes of structures in KeyCertificates
 const (
 	KEYCERT_PUBKEY_SIZE = 256
 	KEYCERT_SPK_SIZE    = 128

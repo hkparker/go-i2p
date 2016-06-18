@@ -83,9 +83,10 @@ signature :: Signature
 import (
 	"errors"
 	log "github.com/Sirupsen/logrus"
-	"github.com/bounce-chat/go-i2p/lib/crypto"
+	"github.com/hkparker/go-i2p/lib/crypto"
 )
 
+// Sizes of various structures in an I2P LeaseSet
 const (
 	LEASE_SET_PUBKEY_SIZE = 256
 	LEASE_SET_SPK_SIZE    = 128

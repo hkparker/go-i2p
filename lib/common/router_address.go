@@ -40,6 +40,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
+// Minimum number of bytes in a valid RouterAddress
 const (
 	ROUTER_ADDRESS_MIN_SIZE = 9
 )

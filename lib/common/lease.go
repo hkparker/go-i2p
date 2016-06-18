@@ -30,9 +30,10 @@ end_date :: Date
 */
 
 import (
-	"github.com/bounce-chat/go-i2p/lib/tunnel"
+	"github.com/hkparker/go-i2p/lib/tunnel"
 )
 
+// Sizes or various components of a Lease
 const (
 	LEASE_SIZE           = 44
 	LEASE_HASH_SIZE      = 32

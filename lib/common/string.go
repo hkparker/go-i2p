@@ -11,6 +11,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
+// Maximum number of bytes that can be stored in an I2P string
 const (
 	STRING_MAX_SIZE = 255
 )

@@ -10,6 +10,7 @@ import (
 	"encoding/binary"
 )
 
+// Total byte length of an I2P integer
 const (
 	INTEGER_SIZE = 8
 )

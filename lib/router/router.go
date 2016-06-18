@@ -1,8 +1,8 @@
 package router
 
 import (
-	"github.com/bounce-chat/go-i2p/lib/config"
-	"github.com/bounce-chat/go-i2p/lib/netdb"
+	"github.com/hkparker/go-i2p/lib/config"
+	"github.com/hkparker/go-i2p/lib/netdb"
 )
 
 // i2p router type

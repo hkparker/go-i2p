@@ -48,9 +48,10 @@ total length: 387+ bytes
 import (
 	"errors"
 	log "github.com/Sirupsen/logrus"
-	"github.com/bounce-chat/go-i2p/lib/crypto"
+	"github.com/hkparker/go-i2p/lib/crypto"
 )
 
+// Sizes of various KeysAndCert structures and requirements
 const (
 	KEYS_AND_CERT_PUBKEY_SIZE = 256
 	KEYS_AND_CERT_SPK_SIZE    = 128
