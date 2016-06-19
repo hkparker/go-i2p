@@ -8,7 +8,7 @@ Fork go-i2p and clone it into your workspace.  Make sure you can execute `go tes
 
 ## I2P Specifications
 
-The I2P community maintains up-to-date [specifications](https://geti2p.net/spec) of most of the application, which are being used to create go-i2p.  Currently, most the of common data structures (located in `lib/common/`) have been implemented and tested, and serve as a good examples.
+The I2P community maintains up-to-date [specifications](https://geti2p.net/spec) of most of the application, which are being used to create go-i2p.  Currently, most the of common data structures (located in `lib/common/`) have been implemented and tested, and serve as good examples.
 
 ## Testing
 
@@ -16,20 +16,20 @@ The I2P community maintains up-to-date [specifications](https://geti2p.net/spec)
 
 ## Conventions
 
-### Logging
+#### Logging
 
 Logrus is used for logging across all of go-i2p.  All log statements should contain an `at` fields and a `reason` field.  Here is a good example from the go-i2p implementation of a LeaseSet:
 
 ```go
 log.WithFields(log.Fields(
-	"at":		"(LeaseSet) PublicKey",
-	"data_len":	remainer_len,
-	"required_len":	LEASE_SET_PUBKEY_SIZE,
-	"reason":	"not enough data",
+	"at":           "(LeaseSet) PublicKey",
+	"data_len":     remainer_len,
+	"required_len": LEASE_SET_PUBKEY_SIZE,
+	"reason":       "not enough data",
 )).Error("error parsing public key")
 ```
 
-### Testing
+#### Testing
 
 Testify is used to assert test cases in all tests in go-i2p for simplicity.  Here is an example from the RouterInfo tests:
 
