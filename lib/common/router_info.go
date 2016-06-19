@@ -105,7 +105,7 @@ func (router_info RouterInfo) Published() (date Date, err error) {
 		err = errors.New("error parsing date: not enough data")
 		return
 	}
-	copy(remainder[:8], date[:])
+	copy(date[:], remainder[:8])
 	return
 }
 
