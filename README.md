@@ -8,7 +8,7 @@ go-i2p is in early development.
 
 ## Contributing
 
-
+See CONTRIBUTING.md for more information.
 
 ## License
 
