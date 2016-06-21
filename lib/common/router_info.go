@@ -93,7 +93,10 @@ func (router_info RouterInfo) RouterIdentity() (router_identity RouterIdentity, 
 // Return the Date the RouterInfo was published and any errors encountered parsing the RouterInfo.
 //
 func (router_info RouterInfo) Published() (date Date, err error) {
-	_, remainder, _ := ReadRouterIdentity(router_info)
+	_, remainder, err := ReadRouterIdentity(router_info)
+	if err != nil {
+		return
+	}
 	remainder_len := len(remainder)
 	if remainder_len < 8 {
 		log.WithFields(log.Fields{
@@ -113,7 +116,10 @@ func (router_info RouterInfo) Published() (date Date, err error) {
 // Return the Integer representing the number of RouterAddresses that are contained in this RouterInfo.
 //
 func (router_info RouterInfo) RouterAddressCount() (count int, err error) {
-	_, remainder, _ := ReadRouterIdentity(router_info)
+	_, remainder, err := ReadRouterIdentity(router_info)
+	if err != nil {
+		return
+	}
 	remainder_len := len(remainder)
 	if remainder_len < 9 {
 		log.WithFields(log.Fields{
@@ -134,7 +140,10 @@ func (router_info RouterInfo) RouterAddressCount() (count int, err error) {
 // a partial list if data is missing.
 //
 func (router_info RouterInfo) RouterAddresses() (router_addresses []RouterAddress, err error) {
-	_, remainder, _ := ReadRouterIdentity(router_info)
+	_, remainder, err := ReadRouterIdentity(router_info)
+	if err != nil {
+		return
+	}
 	remainder_len := len(remainder)
 	if remainder_len < 9 {
 		log.WithFields(log.Fields{

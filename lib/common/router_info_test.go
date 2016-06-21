@@ -36,6 +36,28 @@ func TestPublishedReturnsCorrectDate(t *testing.T) {
 	assert.Equal(int64(86400), date.Time().Unix(), "RouterInfo.Published() did not return correct date")
 }
 
+func TestPublishedReturnsCorrectErrorWithPartialDate(t *testing.T) {
+	assert := assert.New(t)
+
+	router_info := buildFullRouterInfo()
+	router_info = router_info[:387+4]
+	_, err := router_info.Published()
+	if assert.NotNil(err) {
+		assert.Equal("error parsing date: not enough data", err.Error())
+	}
+}
+
+func TestPublishedReturnsCorrectErrorWithInvalidData(t *testing.T) {
+	assert := assert.New(t)
+
+	router_info := buildFullRouterInfo()
+	router_info = router_info[:56]
+	_, err := router_info.Published()
+	if assert.NotNil(err) {
+		assert.Equal("error parsing KeysAndCert: data is smaller than minimum valid size", err.Error())
+	}
+}
+
 func TestRouterAddressCountReturnsCorrectCount(t *testing.T) {
 	assert := assert.New(t)
 
@@ -45,11 +67,23 @@ func TestRouterAddressCountReturnsCorrectCount(t *testing.T) {
 	assert.Equal(1, count, "RouterInfo.RouterAddressCount() did not return correct count")
 }
 
-func TestRouterAdrressesReturnsAddresses(t *testing.T) {
+func TestRouterAddressCountReturnsCorrectErrorWithInvalidData(t *testing.T) {
+	assert := assert.New(t)
+
+	router_info := buildFullRouterInfo()
+	router_info = router_info[:387+8]
+	count, err := router_info.RouterAddressCount()
+	if assert.NotNil(err) {
+		assert.Equal("error parsing router addresses: not enough data", err.Error())
+	}
+	assert.Equal(0, count)
+}
+
+func TestRouterAddressesReturnsAddresses(t *testing.T) {
 
 }
 
-func TestRouterAdrressesReturnsPartialListWithMissing(t *testing.T) {
+func TestRouterAddressesReturnsPartialListWithMissing(t *testing.T) {
 
 }
 
