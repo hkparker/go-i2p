@@ -76,12 +76,9 @@ func TestReadRouterAddressReturnsCorrectRemainderWithoutError(t *testing.T) {
 	router_address, remainder, err := ReadRouterAddress(router_address_bytes)
 
 	assert.Nil(err, "ReadRouterAddress() reported error with valid data:")
-	if bytes.Compare(remainder, []byte{0x01, 0x02, 0x03}) != 0 {
-		t.Fatal("incorrect remainder returned on ReadRouterAddress:", remainder)
-	}
+	assert.Equal(0, bytes.Compare(remainder, []byte{0x01, 0x02, 0x03}))
 
 	err, exit := router_address.checkValid()
-
 	assert.Nil(err, "checkValid() on address from ReadRouterAddress() reported error with valid data")
 	assert.Equal(exit, false, "checkValid() on address from ReadRouterAddress() indicated to stop parsing valid data")
 }

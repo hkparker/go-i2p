@@ -155,7 +155,7 @@ func (router_info RouterInfo) RouterAddresses() (router_addresses []RouterAddres
 		err = errors.New("error parsing router addresses: not enough data")
 		return
 	}
-	remaining := router_info[9:]
+	remaining := remainder[9:]
 	var router_address RouterAddress
 	addr_count, cerr := router_info.RouterAddressCount()
 	if cerr != nil {
