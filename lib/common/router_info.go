@@ -196,7 +196,7 @@ func (router_info RouterInfo) Options() (mapping Mapping) {
 func (router_info RouterInfo) Signature() (signature Signature) {
 	head := router_info.optionsLocation()
 	size := head + router_info.optionsSize()
-	signature = Signature(router_info[head+size : head+size+40])
+	signature = Signature(router_info[size : size+40])
 	return
 }
 

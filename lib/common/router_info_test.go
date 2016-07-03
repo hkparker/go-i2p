@@ -135,6 +135,12 @@ func TestOptionsAreCorrect(t *testing.T) {
 	)
 }
 
-func TestSignatureIsCorrectSize(t *testing.T) {}
+func TestSignatureIsCorrectSize(t *testing.T) {
+	assert := assert.New(t)
+
+	router_info := buildFullRouterInfo()
+	signature := router_info.Signature()
+	assert.Equal(40, len(signature))
+}
 
 func TestRouterIdentityIsCorrect(t *testing.T) {}
