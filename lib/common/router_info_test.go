@@ -6,26 +6,39 @@ import (
 	"testing"
 )
 
+func buildRouterIdentity() RouterIdentity {
+	router_ident_data := make([]byte, 128+256)
+	router_ident_data = append(router_ident_data, []byte{0x05, 0x00, 0x04, 0x00, 0x01, 0x00, 0x00}...)
+	return RouterIdentity(router_ident_data)
+}
+
+func buildDate() []byte {
+	date_data := []byte{0x00, 0x00, 0x00, 0x00, 0x05, 0x26, 0x5c, 0x00}
+	return date_data
+}
+
+func mappingData() Mapping {
+	mapping, _ := GoMapToMapping(map[string]string{"host": "127.0.0.1", "port": "4567"})
+	return mapping
+}
+
 func buildRouterAddress() RouterAddress {
 	router_address_bytes := []byte{0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 	str, _ := ToI2PString("foo")
-	mapping, _ := GoMapToMapping(map[string]string{"host": "127.0.0.1", "port": "4567"})
 	router_address_bytes = append(router_address_bytes, []byte(str)...)
-	router_address_bytes = append(router_address_bytes, mapping...)
-
+	router_address_bytes = append(router_address_bytes, mappingData()...)
 	return RouterAddress(router_address_bytes)
 }
 
 func buildFullRouterInfo() RouterInfo {
 	router_info_data := make([]byte, 0)
-	router_ident_data := make([]byte, 128+256)
-	router_ident_data = append(router_ident_data, []byte{0x05, 0x00, 0x04, 0x00, 0x01, 0x00, 0x00}...)
-	router_info_data = append(router_info_data, router_ident_data...)
-	date_data := []byte{0x00, 0x00, 0x00, 0x00, 0x05, 0x26, 0x5c, 0x00}
-	router_info_data = append(router_info_data, date_data...)
+	router_info_data = append(router_info_data, buildRouterIdentity()...)
+	router_info_data = append(router_info_data, buildDate()...)
 	router_info_data = append(router_info_data, 0x01)
-	router_info_data = append(router_info_data, []byte(buildRouterAddress())...)
-
+	router_info_data = append(router_info_data, buildRouterAddress()...)
+	router_info_data = append(router_info_data, 0x00)
+	router_info_data = append(router_info_data, mappingData()...)
+	router_info_data = append(router_info_data, make([]byte, 40)...)
 	return RouterInfo(router_info_data)
 }
 
@@ -98,6 +111,8 @@ func TestRouterAddressesReturnsAddresses(t *testing.T) {
 	}
 }
 
+func TestRouterAddressesReturnsAddressesWithMultiple(t *testing.T) {}
+
 func TestPeerSizeIsZero(t *testing.T) {
 	assert := assert.New(t)
 
@@ -106,6 +121,20 @@ func TestPeerSizeIsZero(t *testing.T) {
 	assert.Equal(0, size, "RouterInfo.PeerSize() did not return 0")
 }
 
-func TestSignatureIsCorrectSize(t *testing.T) {
+func TestOptionsAreCorrect(t *testing.T) {
+	assert := assert.New(t)
 
+	router_info := buildFullRouterInfo()
+	options := router_info.Options()
+	assert.Equal(
+		0,
+		bytes.Compare(
+			[]byte(mappingData()),
+			[]byte(options),
+		),
+	)
 }
+
+func TestSignatureIsCorrectSize(t *testing.T) {}
+
+func TestRouterIdentityIsCorrect(t *testing.T) {}

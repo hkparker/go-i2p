@@ -204,14 +204,41 @@ func (router_info RouterInfo) Signature() (signature Signature) {
 // Used during parsing to determine where in the RouterInfo the Mapping data begins.
 //
 func (router_info RouterInfo) optionsLocation() (location int) {
-	location = 9
-	var router_address RouterAddress
-	remaining := router_info[9:]
-	addr_count, _ := router_info.RouterAddressCount()
-	for i := 0; i < addr_count; i++ {
-		router_address, remaining, _ = ReadRouterAddress(remaining)
-		location += len(router_address)
+	data, remainder, err := ReadRouterIdentity(router_info)
+	if err != nil {
+		return
 	}
+	location += len(data)
+
+	remainder_len := len(remainder)
+	if remainder_len < 9 {
+		log.WithFields(log.Fields{
+			"at":           "(RouterInfo) optionsLocation",
+			"data_len":     remainder_len,
+			"required_len": 9,
+			"reason":       "not enough data",
+		}).Error("error parsing router info")
+		err = errors.New("error parsing router addresses: not enough data")
+		return
+	}
+	location += 9
+
+	remaining := remainder[9:]
+	var router_address RouterAddress
+	var router_addresses []RouterAddress
+	addr_count, cerr := router_info.RouterAddressCount()
+	if cerr != nil {
+		err = cerr
+		return
+	}
+	for i := 0; i < addr_count; i++ {
+		router_address, remaining, err = ReadRouterAddress(remaining)
+		if err == nil {
+			location += len(router_address)
+			router_addresses = append(router_addresses, router_address)
+		}
+	}
+	location += 1
 	return
 }
 
@@ -220,6 +247,6 @@ func (router_info RouterInfo) optionsLocation() (location int) {
 //
 func (router_info RouterInfo) optionsSize() (size int) {
 	head := router_info.optionsLocation()
-	size = Integer(router_info[head:head+1]) + 1
+	size = Integer(router_info[head:head+2]) + 2
 	return
 }
