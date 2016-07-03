@@ -1,8 +1,8 @@
 package transport
 
 import (
-	"github.com/bounce-chat/go-i2p/lib/common"
-	"github.com/bounce-chat/go-i2p/lib/i2np"
+	"github.com/hkparker/go-i2p/lib/common"
+	"github.com/hkparker/go-i2p/lib/i2np"
 )
 
 // a session between 2 routers for tranmitting i2np messages securly
@@ -28,11 +28,11 @@ type Transport interface {
 	// returns any errors that happen if they do
 	SetIdentity(ident common.RouterIdentity) error
 
-	// Obtain a transport session with a router given the Hash of its RouterInfo.
+	// Obtain a transport session with a router given its RouterInfo.
 	// If a session with this router is NOT already made attempt to create one and block until made or until an error happens
 	// returns an established TransportSession and nil on success
 	// returns nil and an error on error
-	GetSession(routerInfo common.Hash) (TransportSession, error)
+	GetSession(routerInfo common.RouterInfo) (TransportSession, error)
 
 	// return true if a routerInfo is compatable with this transport
 	Compatable(routerInfo common.RouterInfo) bool

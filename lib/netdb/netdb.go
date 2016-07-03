@@ -1,7 +1,7 @@
 package netdb
 
 import (
-	"github.com/bounce-chat/go-i2p/lib/common"
+	"github.com/hkparker/go-i2p/lib/common"
 )
 
 // i2p network database, storage of i2p RouterInfos
