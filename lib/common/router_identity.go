@@ -2,14 +2,14 @@ package common
 
 /*
 I2P RouterIdentity
-https://geti2p.net/en/docs/spec/common-structures#struct_RouterIdentity
+https://geti2p.net/spec/common-structures#routeridentity
 Accurate for version 0.9.24
 
 Identical to KeysAndCert
 */
 
 import (
-	"github.com/bounce-chat/go-i2p/lib/crypto"
+	"github.com/hkparker/go-i2p/lib/crypto"
 )
 
 //

@@ -2,7 +2,7 @@ package common
 
 /*
 I2P RouterAddress
-https://geti2p.net/en/docs/spec/common-structures#struct_RouterAddress
+https://geti2p.net/spec/common-structures#routeraddress
 Accurate for version 0.9.24
 
 +----+----+----+----+----+----+----+----+
@@ -40,6 +40,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
+// Minimum number of bytes in a valid RouterAddress
 const (
 	ROUTER_ADDRESS_MIN_SIZE = 9
 )
@@ -110,12 +111,14 @@ func (router_address RouterAddress) checkValid() (err error, exit bool) {
 	exit = false
 	if addr_len == 0 {
 		log.WithFields(log.Fields{
+			"at":     "(RouterAddress) checkValid",
 			"reason": "no data",
 		}).Error("invalid router address")
 		err = errors.New("error parsing RouterAddress: no data")
 		exit = true
 	} else if addr_len < ROUTER_ADDRESS_MIN_SIZE {
 		log.WithFields(log.Fields{
+			"at":     "(RouterAddress) checkValid",
 			"reason": "data too small (len < ROUTER_ADDRESS_MIN_SIZE)",
 		}).Warn("router address format warning")
 		err = errors.New("warning parsing RouterAddress: data too small")

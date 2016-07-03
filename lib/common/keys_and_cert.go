@@ -2,7 +2,7 @@ package common
 
 /*
 I2P KeysAndCert
-https://geti2p.net/en/docs/spec/common-structures#struct_KeysAndCert
+https://geti2p.net/spec/common-structures#keysandcert
 Accurate for version 0.9.24
 
 +----+----+----+----+----+----+----+----+
@@ -48,13 +48,15 @@ total length: 387+ bytes
 import (
 	"errors"
 	log "github.com/Sirupsen/logrus"
-	"github.com/bounce-chat/go-i2p/lib/crypto"
+	"github.com/hkparker/go-i2p/lib/crypto"
 )
 
+// Sizes of various KeysAndCert structures and requirements
 const (
 	KEYS_AND_CERT_PUBKEY_SIZE = 256
 	KEYS_AND_CERT_SPK_SIZE    = 128
 	KEYS_AND_CERT_MIN_SIZE    = 387
+	KEYS_AND_CERT_DATA_SIZE   = 384
 )
 
 type KeysAndCert []byte
@@ -65,6 +67,9 @@ type KeysAndCert []byte
 //
 func (keys_and_cert KeysAndCert) PublicKey() (key crypto.PublicKey, err error) {
 	cert, err := keys_and_cert.Certificate()
+	if err != nil {
+		return
+	}
 	cert_len, err := cert.Length()
 	if err != nil {
 		return
@@ -93,6 +98,7 @@ func (keys_and_cert KeysAndCert) PublicKey() (key crypto.PublicKey, err error) {
 			copy(keys_and_cert[:KEYS_AND_CERT_PUBKEY_SIZE], elg_key[:])
 			key = elg_key
 			log.WithFields(log.Fields{
+				"at":        "(KeysAndCert) PublicKey",
 				"cert_type": cert_type,
 			}).Warn("unused certificate type observed")
 		}
@@ -107,6 +113,9 @@ func (keys_and_cert KeysAndCert) PublicKey() (key crypto.PublicKey, err error) {
 //
 func (keys_and_cert KeysAndCert) SigningPublicKey() (signing_public_key crypto.SigningPublicKey, err error) {
 	cert, err := keys_and_cert.Certificate()
+	if err != nil {
+		return
+	}
 	cert_len, err := cert.Length()
 	if err != nil {
 		return
@@ -148,6 +157,7 @@ func (keys_and_cert KeysAndCert) Certificate() (cert Certificate, err error) {
 	keys_cert_len := len(keys_and_cert)
 	if keys_cert_len < KEYS_AND_CERT_MIN_SIZE {
 		log.WithFields(log.Fields{
+			"at":           "(KeysAndCert) Certificate",
 			"data_len":     keys_cert_len,
 			"required_len": KEYS_AND_CERT_MIN_SIZE,
 			"reason":       "not enough data",
@@ -155,7 +165,7 @@ func (keys_and_cert KeysAndCert) Certificate() (cert Certificate, err error) {
 		err = errors.New("error parsing KeysAndCert: data is smaller than minimum valid size")
 		return
 	}
-	cert, _, err = ReadCertificate(keys_and_cert[KEYS_AND_CERT_PUBKEY_SIZE+KEYS_AND_CERT_SPK_SIZE:])
+	cert, _, err = ReadCertificate(keys_and_cert[KEYS_AND_CERT_DATA_SIZE:])
 	return
 }
 
@@ -167,6 +177,7 @@ func ReadKeysAndCert(data []byte) (keys_and_cert KeysAndCert, remainder []byte, 
 	data_len := len(data)
 	if data_len < KEYS_AND_CERT_MIN_SIZE {
 		log.WithFields(log.Fields{
+			"at":           "ReadKeysAndCert",
 			"data_len":     data_len,
 			"required_len": KEYS_AND_CERT_MIN_SIZE,
 			"reason":       "not enough data",
@@ -174,14 +185,19 @@ func ReadKeysAndCert(data []byte) (keys_and_cert KeysAndCert, remainder []byte, 
 		err = errors.New("error parsing KeysAndCert: data is smaller than minimum valid size")
 		return
 	}
-	copy(data[:KEYS_AND_CERT_MIN_SIZE], keys_and_cert)
+	keys_and_cert = KeysAndCert(data[:KEYS_AND_CERT_MIN_SIZE])
 	cert, _ := keys_and_cert.Certificate()
-	n, err := cert.Length()
-	if err != nil {
+	cert_len, cert_len_err := cert.Length()
+	if cert_len == 0 {
 		remainder = data[KEYS_AND_CERT_MIN_SIZE:]
 		return
 	}
-	keys_and_cert = append(keys_and_cert, data[KEYS_AND_CERT_MIN_SIZE:n+3]...)
-	remainder = data[KEYS_AND_CERT_MIN_SIZE+n+3:]
+	if data_len < KEYS_AND_CERT_MIN_SIZE+cert_len {
+		keys_and_cert = append(keys_and_cert, data[KEYS_AND_CERT_MIN_SIZE:]...)
+		err = cert_len_err
+	} else {
+		keys_and_cert = append(keys_and_cert, data[KEYS_AND_CERT_MIN_SIZE:KEYS_AND_CERT_MIN_SIZE+cert_len]...)
+		remainder = data[KEYS_AND_CERT_MIN_SIZE+cert_len:]
+	}
 	return
 }

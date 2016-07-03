@@ -2,7 +2,7 @@ package common
 
 /*
 I2P RouterInfo
-https://geti2p.net/en/docs/spec/common-structures#struct_RouterInfo
+https://geti2p.net/spec/common-structures#routerinfo
 Accurate for version 0.9.24
 
 +----+----+----+----+----+----+----+----+
@@ -93,10 +93,14 @@ func (router_info RouterInfo) RouterIdentity() (router_identity RouterIdentity, 
 // Return the Date the RouterInfo was published and any errors encountered parsing the RouterInfo.
 //
 func (router_info RouterInfo) Published() (date Date, err error) {
-	_, remainder, _ := ReadRouterIdentity(router_info)
+	_, remainder, err := ReadRouterIdentity(router_info)
+	if err != nil {
+		return
+	}
 	remainder_len := len(remainder)
 	if remainder_len < 8 {
 		log.WithFields(log.Fields{
+			"at":           "(RouterInfo) Published",
 			"data_len":     remainder_len,
 			"required_len": 8,
 			"reason":       "not enough data",
@@ -104,7 +108,7 @@ func (router_info RouterInfo) Published() (date Date, err error) {
 		err = errors.New("error parsing date: not enough data")
 		return
 	}
-	copy(remainder[:8], date[:])
+	copy(date[:], remainder[:8])
 	return
 }
 
@@ -112,10 +116,14 @@ func (router_info RouterInfo) Published() (date Date, err error) {
 // Return the Integer representing the number of RouterAddresses that are contained in this RouterInfo.
 //
 func (router_info RouterInfo) RouterAddressCount() (count int, err error) {
-	_, remainder, _ := ReadRouterIdentity(router_info)
+	_, remainder, err := ReadRouterIdentity(router_info)
+	if err != nil {
+		return
+	}
 	remainder_len := len(remainder)
 	if remainder_len < 9 {
 		log.WithFields(log.Fields{
+			"at":           "(RouterInfo) RouterAddressCount",
 			"data_len":     remainder_len,
 			"required_len": 9,
 			"reason":       "not enough data",
@@ -132,10 +140,14 @@ func (router_info RouterInfo) RouterAddressCount() (count int, err error) {
 // a partial list if data is missing.
 //
 func (router_info RouterInfo) RouterAddresses() (router_addresses []RouterAddress, err error) {
-	_, remainder, _ := ReadRouterIdentity(router_info)
+	_, remainder, err := ReadRouterIdentity(router_info)
+	if err != nil {
+		return
+	}
 	remainder_len := len(remainder)
 	if remainder_len < 9 {
 		log.WithFields(log.Fields{
+			"at":           "(RouterInfo) RouterAddresses",
 			"data_len":     remainder_len,
 			"required_len": 9,
 			"reason":       "not enough data",
@@ -143,7 +155,7 @@ func (router_info RouterInfo) RouterAddresses() (router_addresses []RouterAddres
 		err = errors.New("error parsing router addresses: not enough data")
 		return
 	}
-	remaining := router_info[9:]
+	remaining := remainder[9:]
 	var router_address RouterAddress
 	addr_count, cerr := router_info.RouterAddressCount()
 	if cerr != nil {
@@ -164,7 +176,7 @@ func (router_info RouterInfo) RouterAddresses() (router_addresses []RouterAddres
 //
 func (router_info RouterInfo) PeerSize() int {
 	// Peer size is unused:
-	// https://geti2p.net/en/docs/spec/common-structures#struct_RouterAddress
+	// https://geti2p.net/spec/common-structures#routeraddress
 	return 0
 }
 
@@ -184,7 +196,7 @@ func (router_info RouterInfo) Options() (mapping Mapping) {
 func (router_info RouterInfo) Signature() (signature Signature) {
 	head := router_info.optionsLocation()
 	size := head + router_info.optionsSize()
-	signature = Signature(router_info[head+size : head+size+40])
+	signature = Signature(router_info[size : size+40])
 	return
 }
 
@@ -192,14 +204,41 @@ func (router_info RouterInfo) Signature() (signature Signature) {
 // Used during parsing to determine where in the RouterInfo the Mapping data begins.
 //
 func (router_info RouterInfo) optionsLocation() (location int) {
-	location = 9
-	var router_address RouterAddress
-	remaining := router_info[9:]
-	addr_count, _ := router_info.RouterAddressCount()
-	for i := 0; i < addr_count; i++ {
-		router_address, remaining, _ = ReadRouterAddress(remaining)
-		location += len(router_address)
+	data, remainder, err := ReadRouterIdentity(router_info)
+	if err != nil {
+		return
 	}
+	location += len(data)
+
+	remainder_len := len(remainder)
+	if remainder_len < 9 {
+		log.WithFields(log.Fields{
+			"at":           "(RouterInfo) optionsLocation",
+			"data_len":     remainder_len,
+			"required_len": 9,
+			"reason":       "not enough data",
+		}).Error("error parsing router info")
+		err = errors.New("error parsing router addresses: not enough data")
+		return
+	}
+	location += 9
+
+	remaining := remainder[9:]
+	var router_address RouterAddress
+	var router_addresses []RouterAddress
+	addr_count, cerr := router_info.RouterAddressCount()
+	if cerr != nil {
+		err = cerr
+		return
+	}
+	for i := 0; i < addr_count; i++ {
+		router_address, remaining, err = ReadRouterAddress(remaining)
+		if err == nil {
+			location += len(router_address)
+			router_addresses = append(router_addresses, router_address)
+		}
+	}
+	location += 1
 	return
 }
 
@@ -208,6 +247,6 @@ func (router_info RouterInfo) optionsLocation() (location int) {
 //
 func (router_info RouterInfo) optionsSize() (size int) {
 	head := router_info.optionsLocation()
-	size = Integer(router_info[head:head+1]) + 1
+	size = Integer(router_info[head:head+2]) + 2
 	return
 }

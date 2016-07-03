@@ -2,7 +2,7 @@ package common
 
 /*
 I2P String
-https://geti2p.net/en/docs/spec/common-structures#type_String
+https://geti2p.net/spec/common-structures#string
 Accurate for version 0.9.24
 */
 
@@ -11,6 +11,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
+// Maximum number of bytes that can be stored in an I2P string
 const (
 	STRING_MAX_SIZE = 255
 )
@@ -24,6 +25,7 @@ type String []byte
 func (str String) Length() (length int, err error) {
 	if len(str) == 0 {
 		log.WithFields(log.Fields{
+			"at":     "(String) Length",
 			"reason": "no data",
 		}).Error("error parsing string")
 		err = errors.New("error parsing string: zero length")
@@ -34,6 +36,7 @@ func (str String) Length() (length int, err error) {
 	str_len := len(str)
 	if inferred_len > str_len {
 		log.WithFields(log.Fields{
+			"at": "(String) Length",
 			"string_bytes_length":   str_len,
 			"string_length_field":   length,
 			"expected_bytes_length": inferred_len,
@@ -42,6 +45,7 @@ func (str String) Length() (length int, err error) {
 		err = errors.New("string parsing warning: string data is shorter than specified by length")
 	} else if str_len > inferred_len {
 		log.WithFields(log.Fields{
+			"at": "(String) Length",
 			"string_bytes_length":   str_len,
 			"string_length_field":   length,
 			"expected_bytes_length": inferred_len,
@@ -81,6 +85,7 @@ func ToI2PString(data string) (str String, err error) {
 	data_len := len(data)
 	if data_len > STRING_MAX_SIZE {
 		log.WithFields(log.Fields{
+			"at":         "ToI2PString",
 			"string_len": data_len,
 			"max_len":    STRING_MAX_SIZE,
 			"reason":     "too much data",

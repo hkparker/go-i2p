@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/bounce-chat/go-i2p/lib/router"
+	"github.com/hkparker/go-i2p/lib/router"
 
 	"flag"
 	log "github.com/golang/glog"

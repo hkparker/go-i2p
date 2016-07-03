@@ -2,7 +2,7 @@ package common
 
 /*
 I2P Integer
-https://geti2p.net/en/docs/spec/common-structures#type_Integer
+https://geti2p.net/spec/common-structures#integer
 Accurate for version 0.9.24
 */
 
@@ -10,6 +10,7 @@ import (
 	"encoding/binary"
 )
 
+// Total byte length of an I2P integer
 const (
 	INTEGER_SIZE = 8
 )

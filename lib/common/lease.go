@@ -2,7 +2,7 @@ package common
 
 /*
 I2P Lease
-https://geti2p.net/en/docs/spec/common-structures#struct_Lease
+https://geti2p.net/spec/common-structures#lease
 Accurate for version 0.9.24
 
 +----+----+----+----+----+----+----+----+
@@ -30,9 +30,10 @@ end_date :: Date
 */
 
 import (
-	"github.com/bounce-chat/go-i2p/lib/tunnel"
+	"github.com/hkparker/go-i2p/lib/tunnel"
 )
 
+// Sizes or various components of a Lease
 const (
 	LEASE_SIZE           = 44
 	LEASE_HASH_SIZE      = 32
