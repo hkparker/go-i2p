@@ -38,7 +38,18 @@ func buildFullLeaseSet(n int) LeaseSet {
 	return LeaseSet(lease_set_data)
 }
 
-// TestDestination
+func TestDestinationIsCorrect(t *testing.T) {
+	assert := assert.New(t)
+
+	lease_set := buildFullLeaseSet(1)
+	dest, err := lease_set.Destination()
+	assert.Nil(err)
+	dest_cert, err := dest.Certificate()
+	assert.Nil(err)
+	cert_type, err := dest_cert.Type()
+	assert.Nil(err)
+	assert.Equal(CERT_KEY, cert_type)
+}
 
 // TestPublicKey
 
