@@ -202,6 +202,14 @@ func (lease_set LeaseSet) LeaseCount() (count int, err error) {
 		return
 	}
 	count = Integer([]byte{remainder[LEASE_SET_PUBKEY_SIZE+LEASE_SET_SPK_SIZE]})
+	if count > 16 {
+		log.WithFields(log.Fields{
+			"at":          "(LeaseSet) LeaseCount",
+			"lease_count": count,
+			"reason":      "more than 16 leases",
+		}).Warn("invalid lease set")
+		err = errors.New("invalid lease set: more than 16 leases")
+	}
 	return
 }
 
