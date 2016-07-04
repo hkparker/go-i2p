@@ -1,6 +1,7 @@
 package common
 
 import (
+	"bytes"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -12,11 +13,19 @@ func buildDestination() RouterIdentity {
 }
 
 func buildPublicKey() []byte {
-	return make([]byte, 256)
+	pk := make([]byte, 256)
+	for i := range pk {
+		pk[i] = 0x01
+	}
+	return pk
 }
 
 func buildSigningKey() []byte {
-	return make([]byte, 128)
+	sk := make([]byte, 128)
+	for i := range sk {
+		sk[i] = 0x02
+	}
+	return sk
 }
 
 func buildLease(n int) []byte {
@@ -51,9 +60,31 @@ func TestDestinationIsCorrect(t *testing.T) {
 	assert.Equal(CERT_KEY, cert_type)
 }
 
-// TestPublicKey
+func TestPublicKeyIsCorrect(t *testing.T) {
+	assert := assert.New(t)
 
-// TestSigningKey
+	lease_set := buildFullLeaseSet(1)
+	pk, err := lease_set.PublicKey()
+	if assert.Nil(err) {
+		assert.Equal(
+			0,
+			bytes.Compare(
+				[]byte(buildPublicKey()),
+				pk[:],
+			),
+		)
+	}
+}
+
+func TestSigningKeyIsCorrect(t *testing.T) {
+	assert := assert.New(t)
+
+	lease_set := buildFullLeaseSet(1)
+	sk, err := lease_set.SigningKey()
+	if assert.Nil(err) {
+		assert.Equal(128, sk.Len())
+	}
+}
 
 func TestLeaseCountCorrect(t *testing.T) {
 	assert := assert.New(t)
@@ -90,4 +121,4 @@ func TestLeaseCountErrorWithTooMany(t *testing.T) {
 
 // TestSignature
 
-//TestOldestExpiration
+// TestOldestExpiration
