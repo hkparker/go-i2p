@@ -54,6 +54,27 @@ func TestLeaseCountCorrect(t *testing.T) {
 	}
 }
 
+func TestLeaseCountCorrectWithMultiple(t *testing.T) {
+	assert := assert.New(t)
+
+	lease_set := buildFullLeaseSet(3)
+	count, err := lease_set.LeaseCount()
+	if assert.Nil(err) {
+		assert.Equal(3, count)
+	}
+}
+
+func TestLeaseCountErrorWithTooMany(t *testing.T) {
+	assert := assert.New(t)
+
+	lease_set := buildFullLeaseSet(17)
+	count, err := lease_set.LeaseCount()
+	if assert.NotNil(err) {
+		assert.Equal("invalid lease set: more than 16 leases", err.Error())
+	}
+	assert.Equal(17, count)
+}
+
 // TestLeases
 
 // TestSignature
