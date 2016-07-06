@@ -267,7 +267,7 @@ func (lease_set LeaseSet) Signature() (signature Signature, err error) {
 		(LEASE_SIZE * lease_count)
 	cert, err := destination.Certificate()
 	if err != nil {
-
+		return
 	}
 	cert_type, _ := cert.Type()
 	var end int
@@ -287,7 +287,7 @@ func (lease_set LeaseSet) Signature() (signature Signature, err error) {
 		err = errors.New("error parsing signature: not enough data")
 		return
 	}
-	copy(signature[:], lease_set[start:end])
+	signature = []byte(lease_set[start:end])
 	return
 }
 

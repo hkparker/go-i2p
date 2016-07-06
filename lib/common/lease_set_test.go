@@ -29,11 +29,23 @@ func buildSigningKey() []byte {
 }
 
 func buildLease(n int) []byte {
-	return make([]byte, LEASE_SIZE*n)
+	data := make([]byte, 0)
+	for i := 0; i < n; i++ {
+		lease := make([]byte, LEASE_SIZE)
+		for i := range lease {
+			lease[i] = byte(i)
+		}
+		data = append(data, lease...)
+	}
+	return data
 }
 
-func buildSignature() []byte {
-	return make([]byte, 40)
+func buildSignature(size int) []byte {
+	sig := make([]byte, size)
+	for i := range sig {
+		sig[i] = 0x08
+	}
+	return sig
 }
 
 func buildFullLeaseSet(n int) LeaseSet {
@@ -43,7 +55,7 @@ func buildFullLeaseSet(n int) LeaseSet {
 	lease_set_data = append(lease_set_data, buildSigningKey()...)
 	lease_set_data = append(lease_set_data, byte(n))
 	lease_set_data = append(lease_set_data, buildLease(n)...)
-	lease_set_data = append(lease_set_data, buildSignature()...)
+	lease_set_data = append(lease_set_data, buildSignature(64)...)
 	return LeaseSet(lease_set_data)
 }
 
@@ -117,8 +129,45 @@ func TestLeaseCountErrorWithTooMany(t *testing.T) {
 	assert.Equal(17, count)
 }
 
-// TestLeases
+func TestLeasesHaveCorrectData(t *testing.T) {
+	assert := assert.New(t)
 
-// TestSignature
+	lease_set := buildFullLeaseSet(3)
+	count, err := lease_set.LeaseCount()
+	if assert.Nil(err) && assert.Equal(3, count) {
+		leases, err := lease_set.Leases()
+		if assert.Nil(err) {
+			for i := 0; i < count; i++ {
+				lease := make([]byte, LEASE_SIZE)
+				for i := range lease {
+					lease[i] = byte(i)
+				}
+				assert.Equal(
+					0,
+					bytes.Compare(
+						lease,
+						leases[i][:],
+					),
+				)
+			}
+		}
+	}
+}
+
+func TestSignatureIsCorrect(t *testing.T) {
+	assert := assert.New(t)
+
+	lease_set := buildFullLeaseSet(1)
+	sig, err := lease_set.Signature()
+	if assert.Nil(err) {
+		assert.Equal(
+			0,
+			bytes.Compare(
+				buildSignature(64),
+				sig,
+			),
+		)
+	}
+}
 
 // TestOldestExpiration
