@@ -1,0 +1,164 @@
+                     I2P Protocol Specification                      
+
+                            jrandom
+                              zzz    
+                             str4d
+                     Various Anonymous Authors
+                     
+                       Transcribed by: psi
+
+
+Note: This document aims to specify I2P's common data structures as currently
+implemented however it may be behind the current java implementation.
+
+
+This specification is a compilation of the existing I2P documentation in
+plaintext boring RFC style formatting.
+
+0. Preliminaries
+
+    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY" and "OPTIONAL" in this document
+    are to be interpreted as described in RFC 2119
+
+
+0.1. Notation and Encoding
+
+  
+    PSK -- a public key used for verification.
+    PEK -- a public key used for encryption.
+    SSK -- a private key used for signing.
+    SEK -- a private key used for decryption.
+    K   -- a key used in a symmetric cipher.
+
+    a|b -- concatenation of 'a' and 'b'.
+
+    a^b -- bitwise xor of 'a' and 'b'
+
+    pow(a, b) -- base-a exponential of b
+
+    [BA D0 F1] -- a three byte sequences, contains the bytes with
+    hexidecimal values BA, D0 and F1 in that order.
+
+    SHA256(m) -- the SHA2 256 cryptographic digest of m
+    SHA1(m)   -- the SHA1 cryptographic digest of m
+    SHA512(m) -- the SHA2 512 cryptographic digest of m
+
+    Dest -- a full I2P Destination, variable length
+    Base32(m) -- base 32 encoded m using the I2P alphabet
+    Base64(m) -- base 64 encoded m using the I2P alphabet
+
+0.1.1. Base32 and Base64 encoding
+
+    TODO: document base32 alphabet for i2p
+
+0.1.2
+
+0.1.2. Endiness
+
+    All data is in Big Endian format unless explicitly mentioned to be otherwise
+
+0.1.3. Design Termonology
+
+    This section describes termonology used by I2P
+
+0.1.3.1. Destination
+
+    An anonymous endpoint accessable inside the I2P network that is comprised of
+    a public encryption key (I2P ElGamal 2048 see section 0.2.1.1),
+    a public signing key (I2P DSA 1024 see section 0.2.2.2) and a certificate
+    containing additional data. This is referred to as the "Base64 Destination"
+    as it is usually represented in I2P Base64 format.
+
+0.1.3.1. Destination Hash
+
+    Base32(SHA256(Dest)) + ".b32.i2p"
+
+0.1.3.1. Lease
+
+0.1.3.2. Lease Set
+
+0.1.3.3. Floodfill
+
+0.1.3.4. Garlic
+
+0.1.3.5. I2NP Message
+
+0.1.3.6. Tunnel
+
+
+
+0.2. Cryptography
+
+0.2.1 Non Standard Cryptographic Constants
+
+    I2P uses non-standard Cryptographic Constants in DSA and ElGamal.
+
+0.2.1.1. Elgamal Constants
+
+    The ElGamal Constant used in I2P is the Oakley prime for 2048 bit keys who's
+    value is
+
+    pow(2, 2048) - pow(2, 1984) - 1 + pow(2, 64) * [ pow(2, 1918 * pi)  + 124476 ]
+
+    which is represented in the source code as the follow byte sequence
+
+    [FF FF FF FF FF FF FF FF C9 0F DA A2 21 68 C2 34 C4 C6 62 8B 80 DC 1C D1
+     29 02 4E 08 8A 67 CC 74 02 0B BE A6 3B 13 9B 22 51 4A 08 79 8E 34 04 DD
+     EF 95 19 B3 CD 3A 43 1B 30 2B 0A 6D F2 5F 14 37 4F E1 35 6D 6D 51 C2 45
+     E4 85 B5 76 62 5E 7E C6 F4 4C 42 E9 A6 37 ED 6B 0B FF 5C B6 F4 06 B7 ED
+     EE 38 6B FB 5A 89 9F A5 AE 9F 24 11 7C 4B 1F E6 49 28 66 51 EC E4 5B 3D
+     C2 00 7C B8 A1 63 BF 05 98 DA 48 36 1C 55 D3 9A 69 16 3F A8 FD 24 CF 5F
+     83 65 5D 23 DC A3 AD 96 1C 62 F3 56 20 85 52 BB 9E D5 29 07 70 96 96 6D
+     67 0C 35 4E 4A BC 98 04 F1 74 6C 08 CA 18 21 7C 32 90 5E 46 2E 36 CE 3B
+     E3 9E 77 2C 18 0E 86 03 9B 27 83 A2 EC 07 A2 8F B5 C5 5D F0 6F 4C 52 C9
+     DE 2B CB F6 95 58 17 18 39 95 49 7C EA 95 6A E5 15 D2 26 18 98 FA 05 10
+     15 72 8E 5A 8A AC AA 68 FF FF FF FF FF FF FF FF]
+
+     Using 2 as the generator
+
+0.2.1.2. DSA Constants
+
+     The DSA Constants used in I2P where generated in 2003 by TheCrypto
+     who as of 2015 is no longer an I2P developer. The prime chosen is assumed
+     to be a 'strong prime', however the strength has not been verified by
+     a 3rd party.
+
+     I2P's DSA is implemented as 1024 bit DSA (L=1024, N=160)
+     
+     160 bit seed:
+
+     [86 10 82 36 B8 52 6E 29 6E 92 3A 40 15 B4 28 28 45 B5 72 CC]
+
+     Counter:
+
+     33
+
+     DSA 1024 bit prime (P):
+
+     [9C 05 B2 AA 96 0D 9B 97 B8 93 19 63 C9 CC 9E 8C 30 26 E9 B8 ED 92 FA D0
+      A6 9C C8 86 D5 BF 80 15 FC AD AE 31 A0 AD 18 FA B3 F0 1B 00 A3 58 DE 23
+      76 55 C4 96 4A FA A2 B3 37 E9 6A D3 16 B9 FB 1C C5 64 B5 AE C5 B6 9A 9F
+      F6 C3 E4 54 87 07 FE F8 50 3D 91 DD 86 02 E8 67 E6 D3 5D 22 35 C1 86 9C
+      E2 47 9C 3B 9D 54 01 DE 04 E0 72 7F B3 3D 65 11 28 5D 4C F2 95 38 D9 E3
+      B6 05 1F 5B 22 CC 1C 93]
+
+     DSA Quotient (Q):
+
+     [A5 DF C2 8F EF 4C A1 E2 86 74 4C D8 EE D9 D2 9D 68 40 46 B7]
+
+     DSA 1024 bit Generator (G):
+
+     [0C 1F 4D 27 D4 00 93 B4 29 E9 62 D7 22 38 24 E0 BB C4 7E 7C 83 2A 39 23
+      6F C6 83 AF 84 88 95 81 07 5F F9 08 2E D3 23 53 D4 37 4D 73 01 CD A1 D2
+      3C 43 1F 46 98 59 9D DA 02 45 18 24 FF 36 97 52 59 36 47 CC 3D DC 19 7D
+      E9 85 E4 3D 13 6C DC FC 6B D5 40 9C D2 F4 50 82 11 42 A5 E6 F8 EB 1C 3A
+      B5 D0 48 4B 81 29 FC F1 7B CE 4F 7F 33 32 1C 3C B3 DB B1 4A 90 5E 7B 2B
+      3E 93 BE 47 08 CB CC 82]
+
+
+0.2.2. Digtial Signature Algorithms Utilized
+
+    I2P utilizes the following Digital Signature Algorithms for
+    Inter-Destination 
+
