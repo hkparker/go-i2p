@@ -4,7 +4,7 @@ Thanks for taking a look at go-i2p!  Please reach out if you have any questions 
 
 ## Getting Starting
 
-Fork go-i2p and clone it into your workspace.  Make sure you can execute `go test ./...` in the project's root directory.  At that point you should have everything you need to start making changes and opening pull requests.
+Fork go-i2p and clone it into your workspace.  Make sure you can execute `go test ./...` in the project's root directory.  At that point you should have everything you need to start making changes and opening pull requests.  If you aren't sure what to work on, take a look at some good [getting started issues](https://github.com/hkparker/go-i2p/issues?q=is%3Aopen+is%3Aissue+label%3A%22start+here%22).
 
 ## I2P Specifications
 
