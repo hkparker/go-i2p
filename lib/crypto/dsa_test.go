@@ -46,10 +46,9 @@ func TestDSA(t *testing.T) {
 	}
 }
 
-
 func BenchmarkDSAGenerate(b *testing.B) {
 	var sk DSAPrivateKey
-	for n := 0 ; n < b.N ; n ++ { 
+	for n := 0; n < b.N; n++ {
 		_, err := sk.Generate()
 		if err != nil {
 			panic(err.Error())
@@ -73,14 +72,14 @@ func BenchmarkDSASignVerify(b *testing.B) {
 	v, _ := pk.NewVerifier()
 	data := make([]byte, 1024)
 	fail := 0
-	for n := 0 ; n < b.N ; n ++ {
+	for n := 0; n < b.N; n++ {
 		sig, err := s.Sign(data)
 		if err != nil {
 			panic(err.Error())
 		}
 		err = v.Verify(data, sig)
 		if err != nil {
-			fail ++
+			fail++
 		}
 	}
 	log.Infof("%d fails %d signs", fail, b.N)
