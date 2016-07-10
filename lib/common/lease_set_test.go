@@ -35,6 +35,7 @@ func buildLease(n int) []byte {
 		for i := range lease {
 			lease[i] = byte(i)
 		}
+		// set incrementing date
 		data = append(data, lease...)
 	}
 	return data
@@ -170,4 +171,5 @@ func TestSignatureIsCorrect(t *testing.T) {
 	}
 }
 
-// TestOldestExpiration
+func TestLatestExpirationIsCorrect(t *testing.T)   {}
+func TestEarliestExpirationIsCorrect(t *testing.T) {}

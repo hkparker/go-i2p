@@ -314,6 +314,34 @@ func (lease_set LeaseSet) Verify() error {
 //
 // Return the oldest date from all the Leases in the LeaseSet.
 //
-func (lease_set LeaseSet) OldestExpiration() (date Date, err error) {
+func (lease_set LeaseSet) LatestExpiration() (oldest Date, err error) {
+	leases, err := lease_set.Leases()
+	if err != nil {
+		return
+	}
+	for _, lease := range leases {
+		date := lease.Date()
+		if Integer(oldest[:]) < Integer(date[:]) {
+			oldest = date
+		}
+	}
+	return
+}
+
+//
+// Return the oldest date from all the Leases in the LeaseSet.
+//
+func (lease_set LeaseSet) EarliestExpiration() (earliest Date, err error) {
+	leases, err := lease_set.Leases()
+	if err != nil {
+		return
+	}
+	earliest = Date{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
+	for _, lease := range leases {
+		date := lease.Date()
+		if Integer(earliest[:]) > Integer(date[:]) {
+			earliest = date
+		}
+	}
 	return
 }
