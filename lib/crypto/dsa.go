@@ -162,8 +162,12 @@ func (ds *DSASigner) SignHash(h []byte) (sig []byte, err error) {
 	r, s, err = dsa.Sign(rand.Reader, ds.k, h)
 	if err == nil {
 		sig = make([]byte, 40)
-		copy(sig, r.Bytes())
-		copy(sig[20:], s.Bytes())
+		rb := r.Bytes()
+		rl := len(rb)
+		copy(sig[20-rl:20], rb)
+		sb := s.Bytes()
+		sl := len(sb)
+		copy(sig[20+(20-sl):], sb)
 	}
 	return
 }

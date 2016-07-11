@@ -1,6 +1,7 @@
 package crypto
 
 import (
+	log "github.com/sirupsen/logrus"
 	"testing"
 )
 
@@ -43,4 +44,43 @@ func TestDSA(t *testing.T) {
 		t.Logf("failed: %s", err.Error())
 		t.Fail()
 	}
+}
+
+func BenchmarkDSAGenerate(b *testing.B) {
+	var sk DSAPrivateKey
+	for n := 0; n < b.N; n++ {
+		_, err := sk.Generate()
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+}
+
+func BenchmarkDSASignVerify(b *testing.B) {
+	var sk DSAPrivateKey
+	var pk DSAPublicKey
+	var err error
+	sk, err = sk.Generate()
+	if err != nil {
+		panic(err.Error())
+	}
+	pk, err = sk.Public()
+	if err != nil {
+		panic(err.Error())
+	}
+	s, _ := sk.NewSigner()
+	v, _ := pk.NewVerifier()
+	data := make([]byte, 1024)
+	fail := 0
+	for n := 0; n < b.N; n++ {
+		sig, err := s.Sign(data)
+		if err != nil {
+			panic(err.Error())
+		}
+		err = v.Verify(data, sig)
+		if err != nil {
+			fail++
+		}
+	}
+	log.Infof("%d fails %d signs", fail, b.N)
 }
