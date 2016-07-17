@@ -314,14 +314,15 @@ func (lease_set LeaseSet) Verify() error {
 //
 // Return the oldest date from all the Leases in the LeaseSet.
 //
-func (lease_set LeaseSet) LatestExpiration() (oldest Date, err error) {
+func (lease_set LeaseSet) NewestExpiration() (oldest Date, err error) {
 	leases, err := lease_set.Leases()
 	if err != nil {
 		return
 	}
+	oldest = Date{0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 	for _, lease := range leases {
 		date := lease.Date()
-		if Integer(oldest[:]) < Integer(date[:]) {
+		if date.Time().After(oldest.Time()) {
 			oldest = date
 		}
 	}
@@ -331,15 +332,15 @@ func (lease_set LeaseSet) LatestExpiration() (oldest Date, err error) {
 //
 // Return the oldest date from all the Leases in the LeaseSet.
 //
-func (lease_set LeaseSet) EarliestExpiration() (earliest Date, err error) {
+func (lease_set LeaseSet) OldestExpiration() (earliest Date, err error) {
 	leases, err := lease_set.Leases()
 	if err != nil {
 		return
 	}
-	earliest = Date{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
+	earliest = Date{0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 	for _, lease := range leases {
 		date := lease.Date()
-		if Integer(earliest[:]) > Integer(date[:]) {
+		if date.Time().Before(earliest.Time()) {
 			earliest = date
 		}
 	}

@@ -32,10 +32,13 @@ func buildLease(n int) []byte {
 	data := make([]byte, 0)
 	for i := 0; i < n; i++ {
 		lease := make([]byte, LEASE_SIZE)
-		for i := range lease {
-			lease[i] = byte(i)
+		for p := range lease {
+			lease[p] = byte(i)
 		}
-		// set incrementing date
+		for q := LEASE_SIZE - 9; q < LEASE_SIZE-1; q++ {
+			lease[q] = 0x00
+		}
+		lease[LEASE_SIZE-1] = byte(i + 10)
 		data = append(data, lease...)
 	}
 	return data
@@ -140,9 +143,13 @@ func TestLeasesHaveCorrectData(t *testing.T) {
 		if assert.Nil(err) {
 			for i := 0; i < count; i++ {
 				lease := make([]byte, LEASE_SIZE)
-				for i := range lease {
-					lease[i] = byte(i)
+				for p := range lease {
+					lease[p] = byte(i)
 				}
+				for q := LEASE_SIZE - 9; q < LEASE_SIZE-1; q++ {
+					lease[q] = 0x00
+				}
+				lease[LEASE_SIZE-1] = byte(i + 10)
 				assert.Equal(
 					0,
 					bytes.Compare(
@@ -171,5 +178,26 @@ func TestSignatureIsCorrect(t *testing.T) {
 	}
 }
 
-func TestLatestExpirationIsCorrect(t *testing.T)   {}
-func TestEarliestExpirationIsCorrect(t *testing.T) {}
+func TestNewestExpirationIsCorrect(t *testing.T) {
+	assert := assert.New(t)
+
+	lease_set := buildFullLeaseSet(5)
+	latest, err := lease_set.NewestExpiration()
+	assert.Nil(err)
+	assert.Equal(
+		Date{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, byte(4 + 10)},
+		latest,
+	)
+}
+
+func TestOldestExpirationIsCorrect(t *testing.T) {
+	assert := assert.New(t)
+
+	lease_set := buildFullLeaseSet(5)
+	latest, err := lease_set.OldestExpiration()
+	assert.Nil(err)
+	assert.Equal(
+		Date{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a},
+		latest,
+	)
+}
