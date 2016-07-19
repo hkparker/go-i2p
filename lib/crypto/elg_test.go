@@ -3,15 +3,15 @@ package crypto
 import (
 	"bytes"
 	"crypto/rand"
-	"golang.org/x/crypto/openpgp/elgamal"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/openpgp/elgamal"
 	"io"
 	"testing"
 )
 
 func BenchmarkElgGenerate(b *testing.B) {
 	k := new(elgamal.PrivateKey)
-	for n := 0 ; n < b.N ; n ++ {
+	for n := 0; n < b.N; n++ {
 		err := ElgamalGenerate(k, rand.Reader)
 		if err != nil {
 			panic(err.Error())
@@ -37,12 +37,12 @@ func BenchmarkElgDecrypt(b *testing.B) {
 	dec := &elgDecrypter{
 		k: prv,
 	}
-	for n := 0 ; n < b.N ; n ++ {
+	for n := 0; n < b.N; n++ {
 		p, err := dec.Decrypt(c)
 		if err != nil {
-			fails ++
-		} else if ! bytes.Equal(p, d) {
-			fails ++
+			fails++
+		} else if !bytes.Equal(p, d) {
+			fails++
 		}
 	}
 	log.Infof("%d fails %d rounds", fails, b.N)
@@ -63,10 +63,10 @@ func BenchmarkElgEncrypt(b *testing.B) {
 	d := make([]byte, 222)
 	_, err = io.ReadFull(rand.Reader, d)
 	fails := 0
-	for n := 0 ; n < b.N ; n ++ {
+	for n := 0; n < b.N; n++ {
 		_, err := enc.Encrypt(d)
 		if err != nil {
-			fails ++
+			fails++
 		}
 	}
 	log.Infof("%d fails %d rounds", fails, b.N)
