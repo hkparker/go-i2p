@@ -1,7 +1,9 @@
 package crypto
 
 import (
+	"crypto/rand"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"testing"
 )
 
@@ -22,8 +24,9 @@ func TestDSA(t *testing.T) {
 			t.Fail()
 		}
 		pk, err = sk.Public()
+		data := make([]byte, 512)
+		io.ReadFull(rand.Reader, data)
 		if err == nil {
-			data := make([]byte, 512)
 			var sig []byte
 			var signer Signer
 			signer, err = sk.NewSigner()
