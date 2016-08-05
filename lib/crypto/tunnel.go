@@ -5,7 +5,7 @@ import (
 	"crypto/cipher"
 )
 
-type TunnelData [1024]byte
+type TunnelData [1028]byte
 
 // A symetric key for encrypting tunnel messages
 type TunnelKey [32]byte
