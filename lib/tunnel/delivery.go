@@ -84,7 +84,7 @@ func (di DeliveryInstructions) MessageID() (msgid uint32) {
 }
 
 // get the size of the associated i2np fragment
-func (di DeliveryInstructions) GetFragmentSize() uint16 {
+func (di DeliveryInstructions) FragmentSize() uint16 {
 	idx := 5
 	t := di.DeliveryType()
 	if t == DT_TUNNEL {
@@ -99,4 +99,8 @@ func (di DeliveryInstructions) GetFragmentSize() uint16 {
 		// add extended options length to idx
 	}
 	return binary.BigEndian.Uint16(di[idx:])
+}
+
+func readDeliveryInstructions(data []byte) (instructions DeliveryInstructions, remainder []byte, err error) {
+	return
 }
