@@ -1,13 +1,40 @@
 package netdb
 
 import (
-	log "github.com/golang/glog"
+	"bytes"
+	"fmt"
+	log "github.com/Sirupsen/logrus"
+	"github.com/hkparker/go-i2p/lib/bootstrap"
+	"github.com/hkparker/go-i2p/lib/common"
+	"github.com/hkparker/go-i2p/lib/common/base64"
 	"io"
 	"os"
+	"path/filepath"
 )
 
-// standard network database implementation
+// standard network database implementation using local filesystem skiplist
 type StdNetDB string
+
+func (db StdNetDB) GetRouterInfo(hash common.Hash) (chnl chan common.RouterInfo) {
+	fname := db.SkiplistFile(hash)
+	f, err := os.Open(fname)
+	if err != nil {
+		return nil
+	}
+	buff := new(bytes.Buffer)
+	_, err = io.Copy(buff, f)
+	f.Close()
+	chnl = make(chan common.RouterInfo)
+	chnl <- common.RouterInfo(buff.Bytes())
+	return
+}
+
+// get the skiplist file that a RouterInfo with this hash would go in
+func (db StdNetDB) SkiplistFile(hash common.Hash) (fpath string) {
+	fname := base64.EncodeToString(hash[:])
+	fpath = filepath.Join(db.Path(), fmt.Sprintf("r%s", fname[0]), fmt.Sprintf("routerInfo-%s.dat", fname))
+	return
+}
 
 // get netdb path
 func (db StdNetDB) Path() string {
@@ -17,26 +44,38 @@ func (db StdNetDB) Path() string {
 //
 // return how many routers we know about in our network database
 //
-func (db StdNetDB) KnownPeerCount() (routers int) {
+func (db StdNetDB) Size() (routers int) {
 	return
 }
 
 // return true if the network db directory exists and is writable
 func (db StdNetDB) Exists() bool {
-	_, err := os.Stat(db.Path())
-	return err != nil
+	p := db.Path()
+	// check root directory
+	_, err := os.Stat(p)
+	if err == nil {
+		// check subdirectories for skiplist
+		for _, c := range base64.Alphabet {
+			if _, err = os.Stat(filepath.Join(p, fmt.Sprintf("r%s", c))); err != nil {
+				return false
+			}
+		}
+	}
+	return err == nil
 }
 
 func (db StdNetDB) SaveEntry(e *Entry) (err error) {
 	var f io.WriteCloser
-	f, err = os.OpenFile(e.FilePath(db), os.O_WRONLY, 0600)
+	var h common.Hash
+	h, err = e.ri.IdentHash()
 	if err == nil {
-		err = e.WriteTo(f)
-		if err != nil {
-			log.Errorf("failed to write netdb entry: %s", err.Error())
+		f, err = os.OpenFile(db.SkiplistFile(h), os.O_WRONLY|os.O_CREATE, 0700)
+		if err == nil {
+			err = e.WriteTo(f)
+			f.Close()
 		}
-		f.Close()
-	} else {
+	}
+	if err != nil {
 		log.Errorf("failed to save netdb entry: %s", err.Error())
 	}
 	return
@@ -44,49 +83,34 @@ func (db StdNetDB) SaveEntry(e *Entry) (err error) {
 
 // reseed if we have less than minRouters known routers
 // returns error if reseed failed
-func (db StdNetDB) Reseed(minRouters int) (err error) {
-	current := db.KnownPeerCount()
-	if current <= minRouters {
-		// we need to reseed
-		rs := GetRandomReseed()
-		log.Infof("Reseeding from %s", rs)
-		chnl := make(chan *Entry)
-		// receive entries from reseed
-		go func(c chan *Entry) {
-			count := 0
-			for {
-				e, ok := <-c
-				if ok {
-					// got an entry
-					// save it to our netdb
-					err := db.SaveEntry(e)
-					if err == nil {
-						count++
-					}
-				}
-			}
-		}(chnl) // call
-		err = rs.Reseed(chnl)
-	}
+func (db StdNetDB) Reseed(b bootstrap.Bootstrap, minRouters int) (err error) {
 	return
 }
 
-// ensure that the network database exists and is seeded with a minimum number of routers
-func (db StdNetDB) Ensure(minRouters int) (err error) {
+// ensure that the network database exists
+func (db StdNetDB) Ensure() (err error) {
 	if !db.Exists() {
 		err = db.Create()
-	}
-	if err == nil {
-		// database directory ensured
-		// try to reseed
-		err = db.Reseed(minRouters)
 	}
 	return
 }
 
 // create base network database directory
 func (db StdNetDB) Create() (err error) {
-	log.Infof("Create network database in %s", db.Path())
-	err = os.Mkdir(db.Path(), 0600)
+	mode := os.FileMode(0600)
+	p := db.Path()
+	log.Infof("Create network database in %s", p)
+
+	// create root for skiplist
+	err = os.Mkdir(p, mode)
+	if err == nil {
+		// create all subdirectories for skiplist
+		for _, c := range base64.Alphabet {
+			err = os.Mkdir(filepath.Join(p, fmt.Sprintf("r%s", c)), mode)
+			if err != nil {
+				return
+			}
+		}
+	}
 	return
 }

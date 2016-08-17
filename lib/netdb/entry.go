@@ -1,16 +1,14 @@
 package netdb
 
 import (
+	"github.com/hkparker/go-i2p/lib/common"
 	"io"
-	"path/filepath"
 )
 
+// netdb entry
+// wraps a router info and provides serialization
 type Entry struct {
-	fname string
-}
-
-func (e *Entry) FilePath(n StdNetDB) (str string) {
-	return filepath.Join(string(n), e.fname)
+	ri common.RouterInfo
 }
 
 func (e *Entry) WriteTo(w io.Writer) (err error) {

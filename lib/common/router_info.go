@@ -90,6 +90,19 @@ func (router_info RouterInfo) RouterIdentity() (router_identity RouterIdentity, 
 }
 
 //
+// Calculate this RouterInfo's Identity Hash (the sha256 of the RouterIdentity)
+// returns error if the RouterIdentity is malformed
+//
+func (router_info RouterInfo) IdentHash() (h Hash, err error) {
+	var ri RouterIdentity
+	ri, err = router_info.RouterIdentity()
+	if err == nil {
+		h = HashData(ri)
+	}
+	return
+}
+
+//
 // Return the Date the RouterInfo was published and any errors encountered parsing the RouterInfo.
 //
 func (router_info RouterInfo) Published() (date Date, err error) {
@@ -196,6 +209,7 @@ func (router_info RouterInfo) Options() (mapping Mapping) {
 func (router_info RouterInfo) Signature() (signature Signature) {
 	head := router_info.optionsLocation()
 	size := head + router_info.optionsSize()
+	// TODO: signature is not always 40 bytes, is 40 bytes for DSA only
 	signature = Signature(router_info[size : size+40])
 	return
 }
