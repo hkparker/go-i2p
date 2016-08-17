@@ -20,13 +20,14 @@ func CreateRouter() (r *Router, err error) {
 
 // create router from configuration
 func FromConfig(c *config.RouterConfig) (r *Router, err error) {
-
 	r = new(Router)
+	r.cfg = c
 	return
 }
 
 // run i2p router mainloop
 func (r *Router) Run() {
+	r.ndb = netdb.StdNetDB(r.cfg.NetDb.Path)
 	// make sure the netdb is ready
 	err := r.ndb.Ensure()
 	if err == nil {

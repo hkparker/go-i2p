@@ -32,7 +32,7 @@ func (db StdNetDB) GetRouterInfo(hash common.Hash) (chnl chan common.RouterInfo)
 // get the skiplist file that a RouterInfo with this hash would go in
 func (db StdNetDB) SkiplistFile(hash common.Hash) (fpath string) {
 	fname := base64.EncodeToString(hash[:])
-	fpath = filepath.Join(db.Path(), fmt.Sprintf("r%s", fname[0]), fmt.Sprintf("routerInfo-%s.dat", fname))
+	fpath = filepath.Join(db.Path(), fmt.Sprintf("r%c", fname[0]), fmt.Sprintf("routerInfo-%s.dat", fname))
 	return
 }
 
@@ -56,7 +56,7 @@ func (db StdNetDB) Exists() bool {
 	if err == nil {
 		// check subdirectories for skiplist
 		for _, c := range base64.Alphabet {
-			if _, err = os.Stat(filepath.Join(p, fmt.Sprintf("r%s", c))); err != nil {
+			if _, err = os.Stat(filepath.Join(p, fmt.Sprintf("r%c", c))); err != nil {
 				return false
 			}
 		}
@@ -97,7 +97,7 @@ func (db StdNetDB) Ensure() (err error) {
 
 // create base network database directory
 func (db StdNetDB) Create() (err error) {
-	mode := os.FileMode(0600)
+	mode := os.FileMode(0700)
 	p := db.Path()
 	log.Infof("Create network database in %s", p)
 
@@ -106,7 +106,7 @@ func (db StdNetDB) Create() (err error) {
 	if err == nil {
 		// create all subdirectories for skiplist
 		for _, c := range base64.Alphabet {
-			err = os.Mkdir(filepath.Join(p, fmt.Sprintf("r%s", c)), mode)
+			err = os.Mkdir(filepath.Join(p, fmt.Sprintf("r%c", c)), mode)
 			if err != nil {
 				return
 			}
