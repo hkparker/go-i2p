@@ -7,7 +7,41 @@ import (
 )
 
 /*
-I2P Tunnel Message
+I2P Encrypted Tunnel Message
+https://geti2p.net/spec/tunnel-message
+Accurate for version 0.9.11
++----+----+----+----+----+----+----+----+
+|    Tunnel ID      |       IV          |
++----+----+----+----+                   +
+|                                       |
++                   +----+----+----+----+
+|                   |                   |
++----+----+----+----+                   +
+|                                       |
++           Encrypted Data              +
+~                                       ~
+|                                       |
++                   +-------------------+
+|                   |
++----+----+----+----+
+
+Tunnel ID :: TunnelId
+       4 bytes
+       the ID of the next hop
+
+IV ::
+       16 bytes
+       the initialization vector
+
+Encrypted Data ::
+       1008 bytes
+       the encrypted tunnel message
+
+total size: 1028 Bytes
+
+
+
+I2P Decrypted Tunnel Message
 https://geti2p.net/spec/tunnel-message
 Accurate for version 0.9.11
 
@@ -112,24 +146,32 @@ func (decrypted_tunnel_message DecryptedTunnelMessage) ID() TunnelID {
 }
 
 func (decrypted_tunnel_message DecryptedTunnelMessage) IV() crypto.TunnelIV {
-	return decrypted_tunnel_message[4:20]
+	return decrypted_tunnel_message[4 : 4+16]
 }
 
 func (decrypted_tunnel_message DecryptedTunnelMessage) Checksum() crypto.TunnelIV {
-	return decrypted_tunnel_message[24:28]
+	return decrypted_tunnel_message[4+16 : 4+4+16]
 }
 
+//
+// Returns the contents of a decrypted tunnel message that contain the data for the
+// DeliveryInstructions.
+//
 func (decrypted_tunnel_message DecryptedTunnelMessage) deliveryInstructionData() []byte {
-	data_area := decrypted_tunnel_message[28:]
-	padding_size := 0
-	for i, _ := range data_area {
-		if i == 0x00 {
-			padding_size = i
+	data_area := decrypted_tunnel_message[4+4+16:]
+	for i := 0; i < len(data_area); i++ {
+		if data_area[i] == 0x00 {
+			return data_area[i+1:]
 		}
 	}
-	return data_area[padding_size:]
+	return []byte{}
 }
 
+//
+// Returns a slice of DeliveryInstructionWithFragment structures, which all of the Delivery Instructions
+// in the tunnel message and their corresponding MessageFragment structures.
+//
+//
 func (decrypted_tunnel_message DecryptedTunnelMessage) DeliveryInstructionsWithFragments() []DeliveryInstructionsWithFragment {
 	set := make([]DeliveryInstructionsWithFragment, 0)
 	data := decrypted_tunnel_message.deliveryInstructionData()
