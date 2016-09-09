@@ -1,15 +1,11 @@
 package main
 
 import (
+	log "github.com/Sirupsen/logrus"
 	"github.com/hkparker/go-i2p/lib/router"
-
-	"flag"
-	log "github.com/golang/glog"
 )
 
 func main() {
-
-	flag.Parse()
 
 	log.Info("parsing i2p router configuration")
 

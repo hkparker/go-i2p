@@ -2,12 +2,14 @@ package config
 
 // router.config options
 type RouterConfig struct {
-	NetDbDir string
-
-	Bootstrap BootstrapConfig
+	// netdb configuration
+	NetDb *NetDbConfig
+	// configuration for bootstrapping into the network
+	Bootstrap *BootstrapConfig
 }
 
 // defaults for router
-var Router = &RouterConfig{
-	NetDbDir: "./netDb",
+var DefaultRouterConfig = &RouterConfig{
+	NetDb:     &DefaultNetDbConfig,
+	Bootstrap: &DefaultBootstrapConfig,
 }
