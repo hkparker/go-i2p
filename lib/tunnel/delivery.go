@@ -138,7 +138,7 @@ type DelayFactor byte
 type DeliveryInstructions []byte
 
 // Return if the DeliveryInstructions are of type FIRST_FRAGMENT or FOLLOW_ON_FRAGMENT.
-func (delivery_instructions DeliveryInstructions) Type() bool {
+func (delivery_instructions DeliveryInstructions) Type() int {
 	/*
 	 Check if the 7 bit of the Delivery Instructions
 	 is set using binary AND operator to determine
@@ -154,7 +154,10 @@ func (delivery_instructions DeliveryInstructions) Type() bool {
 	  follow-on fragment	initial I2NP message
 				fragment or a complete fragment
 	*/
-	return (delivery_instructions[0] & 0x08) == 0x08
+	if (delivery_instructions[0] & 0x08) == 0x08 {
+		return FOLLOW_ON_FRAGMENT
+	}
+	return FIRST_FRAGMENT
 }
 
 // Return the delivery type for these DeliveryInstructions, can be of type
@@ -218,7 +221,7 @@ func (di DeliveryInstructions) ToHash() (h []byte) {
 
 // get the i2np message id or 0 if not applicable
 func (di DeliveryInstructions) MessageID() (msgid uint32) {
-	if di.IsFragmented() {
+	if di.Type() == FOLLOW_ON_FRAGMENT {
 		idx := 1
 		t := di.DeliveryType()
 		if t == DT_TUNNEL {
