@@ -11,7 +11,7 @@ This example assumes Ubuntu 16.04
 ```sh
 sudo apt-get install pkg-config libsodium-dev
 go get github.com/hkparker/go-i2p
-go get github.com/sirupsen/logrus
+go get github.com/Sirupsen/logrus
 go get github.com/stretchr/testify/assert
 ```
 
@@ -32,12 +32,12 @@ The I2P community maintains up-to-date [specifications](https://geti2p.net/spec)
 Logrus is used for logging across all of go-i2p.  All log statements should contain an `at` fields and a `reason` field.  Here is a good example from the go-i2p implementation of a LeaseSet:
 
 ```go
-log.WithFields(log.Fields(
+log.WithFields(log.Fields{
 	"at":           "(LeaseSet) PublicKey",
 	"data_len":     remainer_len,
 	"required_len": LEASE_SET_PUBKEY_SIZE,
 	"reason":       "not enough data",
-)).Error("error parsing public key")
+}).Error("error parsing public key")
 ```
 
 #### Testing
