@@ -29,10 +29,6 @@ end_date :: Date
             length -> 8 bytes
 */
 
-import (
-	"github.com/hkparker/go-i2p/lib/tunnel"
-)
-
 // Sizes or various components of a Lease
 const (
 	LEASE_SIZE           = 44
@@ -53,8 +49,8 @@ func (lease Lease) TunnelGateway() (hash Hash) {
 //
 // Parse the TunnelID Integer in the Lease.
 //
-func (lease Lease) TunnelID() tunnel.TunnelID {
-	return tunnel.TunnelID(
+func (lease Lease) TunnelID() uint32 {
+	return uint32(
 		Integer(lease[LEASE_HASH_SIZE : LEASE_HASH_SIZE+LEASE_TUNNEL_ID_SIZE]),
 	)
 }

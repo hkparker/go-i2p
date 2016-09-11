@@ -2,6 +2,9 @@ package tunnel
 
 import (
 	"encoding/binary"
+	"errors"
+	log "github.com/Sirupsen/logrus"
+	"github.com/hkparker/go-i2p/lib/common"
 )
 
 /*
@@ -51,8 +54,7 @@ Tunnel ID :: TunnelId
 
 To Hash ::
        32 bytes
-       Optional, present if delivery type is DESTINATION, ROUTER, or TUNNEL
-          If DESTINATION, the SHA256 Hash of the destination
+       Optional, present if delivery type is ROUTER, or TUNNEL
           If ROUTER, the SHA256 Hash of the router
           If TUNNEL, the SHA256 Hash of the gateway router
 
@@ -140,19 +142,19 @@ type DeliveryInstructions []byte
 // Return if the DeliveryInstructions are of type FIRST_FRAGMENT or FOLLOW_ON_FRAGMENT.
 func (delivery_instructions DeliveryInstructions) Type() int {
 	/*
-	 Check if the 7 bit of the Delivery Instructions
-	 is set using binary AND operator to determine
-	 the Delivery Instructions type
-	
-	      1xxxxxxx	      0xxxxxxx
-	     &10000000	     &10000000
-	     ---------	     ---------
-	      10000000	      00000000
-	
-	  bit is set,		bit is not set,
-	  message is a		message is an
-	  follow-on fragment	initial I2NP message
-				fragment or a complete fragment
+		 Check if the 7 bit of the Delivery Instructions
+		 is set using binary AND operator to determine
+		 the Delivery Instructions type
+
+		      1xxxxxxx	      0xxxxxxx
+		     &10000000	     &10000000
+		     ---------	     ---------
+		      10000000	      00000000
+
+		  bit is set,		bit is not set,
+		  message is a		message is an
+		  follow-on fragment	initial I2NP message
+					fragment or a complete fragment
 	*/
 	if (delivery_instructions[0] & 0x08) == 0x08 {
 		return FOLLOW_ON_FRAGMENT
@@ -170,89 +172,164 @@ func (delivery_instructions DeliveryInstructions) DeliveryType() byte {
 
 	      xx0?xxxx
 	     &00110000    bit shift
-	     ---------	
+	     ---------
 	      000?0000       >> 4   =>   n	(DT_* consts)
 	*/
 	return (delivery_instructions[0] & 0x30) >> 4
 }
 
-// do we have a delay factor?
-func (di DeliveryInstructions) HasDelay() bool {
-	return (di[0] & 0x10) == 0x10
+// Check if the delay bit is set.  This feature in unimplemented in the Java router.
+func (delivery_instructions DeliveryInstructions) HasDelay() bool {
+	/*
+		 Check if the 4 bit of the Delivery Instructions
+		 is set using binary AND operator to determine
+		 if the Delivery Instructions has a delay
+
+		      xxx1xxxx	      xxx0xxxx
+		     &00010000	     &00010000
+		     ---------	     ---------
+		      00010000	      00000000
+
+		  bit is set,		bit is not set,
+		  delay is included     no delay included
+
+		Delay is unimplemented in the Java router, a warning
+		is logged as this is interesting behavior.
+	*/
+	delay := (delivery_instructions[0] & 0x10) == 0x10
+	if delay {
+		log.WithFields(log.Fields{
+			"at":   "(DeliveryInstructions) HasDelay",
+			"info": "this feature is unimplemented in the Java router",
+		}).Warn("DeliveryInstructions found with delay bit set")
+	}
+	return delay
 }
 
+// Returns true if the Delivery Instructions are fragmented or false
+// if the following data contains the entire message
+func (delivery_instructions DeliveryInstructions) Fragmented() bool {
+	/*
+	 Check if the 3 bit of the Delivery Instructions
+	 is set using binary AND operator to determine
+	 if the Delivery Instructions is fragmented or if
+	 the entire message is contained in the following data
 
-// get the tunnel id in this devilevery instrcutions or 0 if not applicable
-func (di DeliveryInstructions) TunnelID() (tid uint32) {
-	if di.DeliveryType() == DT_TUNNEL {
-		// TODO(psi):  what if this is 0?
-		tid = binary.BigEndian.Uint32(di[1:5])
+	      xxxx1xxx	      xxxx0xxx
+	     &00001000	     &00001000
+	     ---------	     ---------
+	      00001000	      00000000
+
+	  bit is set,		bit is not set,
+	  message is		message is not
+	  fragmented		fragmented
+	*/
+	return (delivery_instructions[0] & 0x08) == 0x08
+}
+
+// Check if the extended options bit is set.  This feature in unimplemented in the Java router.
+func (delivery_instructions DeliveryInstructions) HasExtendedOptions() bool {
+	/*
+		 Check if the 2 bit of the Delivery Instructions
+		 is set using binary AND operator to determine
+		 if the Delivery Instructions has a extended options
+
+		      xxxxx1xx	      xxxxx0xx
+		     &00000100	     &00000100
+		     ---------	     ---------
+		      00000100	      00000000
+
+		  bit is set,		bit is not set,
+		  extended options      extended options
+		  included		not included
+
+		Extended options is unimplemented in the Java router, a warning
+		is logged as this is interesting behavior.
+	*/
+	extended_options := (delivery_instructions[0] & 0x04) == 0x04
+	if extended_options {
+		log.WithFields(log.Fields{
+			"at":   "(DeliveryInstructions) ExtendedOptions",
+			"info": "this feature is unimplemented in the Java router",
+		}).Warn("DeliveryInstructions found with extended_options bit set")
+	}
+	return extended_options
+}
+
+// Return the tunnel ID in this DeliveryInstructions or 0 and an error if the
+// DeliveryInstructions are not of type DT_TUNNEL.
+func (delivery_instructions DeliveryInstructions) TunnelID() (tunnel_id uint32, err error) {
+	if delivery_instructions.DeliveryType() == DT_TUNNEL {
+		tunnel_id = binary.BigEndian.Uint32(delivery_instructions[1:5])
+	} else {
+		err = errors.New("DeliveryInstructions are not of type DT_TUNNEL")
+	}
+	return
+}
+
+// Return the hash for these DeliveryInstructions, which varies by hash type.
+//  If the type is DT_TUNNEL, hash is the SHA256 of the gateway router, if
+//  the type is DT_ROUTER it is the SHA256 of the router.
+func (delivery_instructions DeliveryInstructions) ToHash() (hash common.Hash, err error) {
+	// TODO(hayden): check length of delivery instructions
+	delivery_type := delivery_instructions.DeliveryType()
+	if delivery_type == DT_TUNNEL {
+		copy(hash[:], delivery_instructions[1+4:33+4]) // 4 bytes for DT_TUNNEL's TunnelID
+	} else if delivery_type == DT_ROUTER {
+		copy(hash[:], delivery_instructions[1:33])
+	} else {
+		err = errors.New("No Hash on DeliveryInstructions not of type DT_TUNNEL or DT_ROUTER")
 	}
 	return
 }
 
 // get the delay factor if it exists
-func (di DeliveryInstructions) Delay() (d DelayFactor) {
-	if di.HasDelay() {
-		t := di.DeliveryType()
+func (delivery_instructions DeliveryInstructions) Delay() (d DelayFactor) {
+	if delivery_instructions.HasDelay() {
+		t := delivery_instructions.DeliveryType()
 		if t == DT_TUNNEL {
-			d = DelayFactor(di[37])
+			d = DelayFactor(delivery_instructions[37])
 		} else if t == DT_ROUTER {
-			d = DelayFactor(di[36])
+			d = DelayFactor(delivery_instructions[36])
 		}
-	}
-	return
-}
-
-func (di DeliveryInstructions) HasExtendedOptions() bool {
-	return (di[0] & 0x04) == 0x04
-}
-
-// get the to hash for these delivery instructions or nil if not applicable
-func (di DeliveryInstructions) ToHash() (h []byte) {
-	t := di.DeliveryType()
-	if t == DT_TUNNEL {
-		h = di[5:37]
-	} else if t == DT_ROUTER || t == DT_LOCAL {
-		h = di[4:36]
 	}
 	return
 }
 
 // get the i2np message id or 0 if not applicable
-func (di DeliveryInstructions) MessageID() (msgid uint32) {
-	if di.Type() == FOLLOW_ON_FRAGMENT {
+func (delivery_instructions DeliveryInstructions) MessageID() (msgid uint32) {
+	if delivery_instructions.Type() == FOLLOW_ON_FRAGMENT {
 		idx := 1
-		t := di.DeliveryType()
+		t := delivery_instructions.DeliveryType()
 		if t == DT_TUNNEL {
 			idx += 36
 		} else if t == DT_ROUTER {
 			idx += 32
 		}
-		if di.HasDelay() {
+		if delivery_instructions.HasDelay() {
 			idx++
 		}
-		msgid = binary.BigEndian.Uint32(di[idx:])
+		msgid = binary.BigEndian.Uint32(delivery_instructions[idx:])
 	}
 	return
 }
 
 // get the size of the associated i2np fragment
-func (di DeliveryInstructions) FragmentSize() uint16 {
+func (delivery_instructions DeliveryInstructions) FragmentSize() uint16 {
 	idx := 5
-	t := di.DeliveryType()
+	t := delivery_instructions.DeliveryType()
 	if t == DT_TUNNEL {
 		idx += 36
 	} else if t == DT_ROUTER {
 		idx += 32
 	}
-	if di.HasDelay() {
+	if delivery_instructions.HasDelay() {
 		idx++
 	}
-	if di.HasExtendedOptions() {
+	if delivery_instructions.HasExtendedOptions() {
 		// add extended options length to idx
 	}
-	return binary.BigEndian.Uint16(di[idx:])
+	return binary.BigEndian.Uint16(delivery_instructions[idx:])
 }
 
 func readDeliveryInstructions(data []byte) (instructions DeliveryInstructions, remainder []byte, err error) {
