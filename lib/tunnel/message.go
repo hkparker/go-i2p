@@ -185,13 +185,22 @@ func (decrypted_tunnel_message DecryptedTunnelMessage) DeliveryInstructionsWithF
 			break
 		}
 
-		fragment_data := remainder[:instructions.FragmentSize()]
+		fragment_size, err := instructions.FragmentSize()
+		if err != nil {
+			log.WithFields(log.Fields{
+				"at":  "(DecryptedTunnelMessage) DeliveryInstructionsWithFragments",
+				"err": err.Error(),
+			}).Error("error getting delivery instructions fragment size")
+			break
+		}
+
+		fragment_data := remainder[:fragment_size]
 		pair := DeliveryInstructionsWithFragment{
 			DeliveryInstructions: instructions,
 			MessageFragment:      fragment_data,
 		}
 
-		data = remainder[instructions.FragmentSize():]
+		data = remainder[fragment_size:]
 		set = append(set, pair)
 	}
 	return set
