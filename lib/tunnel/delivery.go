@@ -386,6 +386,39 @@ func (delivery_instructions DeliveryInstructions) MessageID() (msgid uint32, err
 	return
 }
 
+// Return the Extended Options data if present, or an error if not present.  Extended Options in unimplemented
+// in the Java router and the presence of extended options will generate a warning.
+func (delivery_instructions DeliveryInstructions) ExtendedOptions() (data []byte, err error) {
+	ops, err := delivery_instructions.HasExtendedOptions()
+	if err != nil {
+		return
+	}
+	if ops {
+		var extended_options_index int
+		extended_options_index, err = delivery_instructions.extended_options_index()
+		if err != nil {
+			return
+		}
+		if len(delivery_instructions) < extended_options_index+2 {
+			err = errors.New("DeliveryInstructions are invalid, length is shorter than required for Extended Options")
+			return
+		} else {
+			extended_options_size := common.Integer([]byte{delivery_instructions[extended_options_index]})
+			if len(delivery_instructions) < extended_options_index+1+extended_options_size {
+				err = errors.New("DeliveryInstructions are invalid, length is shorter than specified in Extended Options")
+				return
+			} else {
+				data = delivery_instructions[extended_options_index+1 : extended_options_size]
+				return
+			}
+
+		}
+	} else {
+		err = errors.New("DeliveryInstruction does not have the ExtendedOptions flag set")
+	}
+	return
+}
+
 // Return the size of the associated I2NP fragment and an error if the data is unavailable.
 func (delivery_instructions DeliveryInstructions) FragmentSize() (frag_size uint16, err error) {
 	di_type, err := delivery_instructions.Type()
@@ -415,6 +448,7 @@ func (delivery_instructions DeliveryInstructions) FragmentSize() (frag_size uint
 	return
 }
 
+// Find the correct index for the Message ID in a FIRST_FRAGMENT DeliveryInstructions
 func (delivery_instructions DeliveryInstructions) message_id_index() (message_id int, err error) {
 	fragmented, err := delivery_instructions.Fragmented()
 	if err != nil {
@@ -450,6 +484,10 @@ func (delivery_instructions DeliveryInstructions) message_id_index() (message_id
 	} else {
 		return 0, errors.New("DeliveryInstruction must be fragmented to have a Message ID")
 	}
+}
+
+func (delivery_instructions DeliveryInstructions) extended_options_index() (extended_options int, err error) {
+	return
 }
 
 func (delivery_instructions DeliveryInstructions) fragment_size_index() (fragment_size int, err error) {
