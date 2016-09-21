@@ -486,25 +486,93 @@ func (delivery_instructions DeliveryInstructions) message_id_index() (message_id
 	}
 }
 
+// Find the index of the extended options in this Delivery Instruction, if they exist.
 func (delivery_instructions DeliveryInstructions) extended_options_index() (extended_options int, err error) {
+	ops, err := delivery_instructions.HasExtendedOptions()
+	if err != nil {
+		return
+	}
+	if ops {
+		// Start counting after the flags
+		extended_options = 1
+
+		// Add the Tunnel ID and Hash if present
+		var di_type byte
+		di_type, err = delivery_instructions.DeliveryType()
+		if err != nil {
+			return
+		}
+		if di_type == DT_TUNNEL {
+			extended_options += 36
+		} else if di_type == DT_ROUTER {
+			extended_options += 32
+		}
+
+		// Add the Delay if present
+		var delay bool
+		delay, err = delivery_instructions.HasDelay()
+		if err != nil {
+			return
+		}
+		if delay {
+			extended_options++
+		}
+
+		// add message id if present
+		if _, err = delivery_instructions.MessageID(); err == nil {
+			extended_options += 4
+		} else {
+			err = nil
+		}
+		return extended_options, nil
+
+	} else {
+		err = errors.New("DeliveryInstruction does not have the ExtendedOptions flag set")
+	}
 	return
 }
 
+// Find the index of the Fragment Size data in this Delivery Instruction.
 func (delivery_instructions DeliveryInstructions) fragment_size_index() (fragment_size int, err error) {
-	//fragment_size = 5
-	//t := delivery_instructions.DeliveryType()
-	//if t == DT_TUNNEL {
-	//	idx += 36
-	//} else if t == DT_ROUTER {
-	//	idx += 32
-	//}
-	//if delivery_instructions.HasDelay() {
-	//	idx++
-	//}
-	//if delivery_instructions.HasExtendedOptions() {
-	//	// add extended options length to idx
-	//}
-	return 0, nil
+	// Start counting after the flags
+	fragment_size = 1
+
+	// Add the Tunnel ID and Hash if present
+	var di_type byte
+	di_type, err = delivery_instructions.DeliveryType()
+	if err != nil {
+		return
+	}
+	if di_type == DT_TUNNEL {
+		fragment_size += 36
+	} else if di_type == DT_ROUTER {
+		fragment_size += 32
+	}
+
+	// Add the Delay if present
+	var delay bool
+	delay, err = delivery_instructions.HasDelay()
+	if err != nil {
+		return
+	}
+	if delay {
+		fragment_size++
+	}
+
+	// add the message id if present
+	if _, err = delivery_instructions.MessageID(); err == nil {
+		fragment_size += 4
+	} else {
+		err = nil
+	}
+
+	// add extended options if present
+	if opts, err := delivery_instructions.HasExtendedOptions(); opts && err != nil {
+		if extended_opts, err := delivery_instructions.ExtendedOptions(); err == nil {
+			fragment_size += len(extended_opts) + 1
+		}
+	}
+	return fragment_size, nil
 }
 
 func readDeliveryInstructions(data []byte) (instructions DeliveryInstructions, remainder []byte, err error) {
