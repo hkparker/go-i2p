@@ -165,6 +165,18 @@ func (delivery_instructions DeliveryInstructions) Type() (int, error) {
 	return 0, errors.New("DeliveryInstructions contains no data")
 }
 
+// Read the integer stored in the 6-1 bits of a FOLLOW_ON_FRAGMENT's flag, indicating
+// the fragment number.
+func (delivery_instructions DeliveryInstructions) FragmentNumber() (int, error) {
+	return 0, nil
+}
+
+// Read the value of the 0 bit of a FOLLOW_ON_FRAGMENT, which is set to 1 to indicate the
+// last fragment.
+func (delivery_instructions DeliveryInstructions) LastFollowOnFragment() (bool, error) {
+	return true, nil
+}
+
 // Return the delivery type for these DeliveryInstructions, can be of type
 // DT_LOCAL, DT_TUNNEL, DT_ROUTER, or DT_UNUSED.
 func (delivery_instructions DeliveryInstructions) DeliveryType() (byte, error) {
@@ -271,14 +283,23 @@ func (delivery_instructions DeliveryInstructions) HasExtendedOptions() (bool, er
 	return false, errors.New("DeliveryInstructions contains no data")
 }
 
+// Check if the DeliveryInstructions is of type DT_TUNNEL.
+func (delivery_instructions DeliveryInstructions) HasTunnelID() (bool, error) {
+	di_type, err := delivery_instructions.DeliveryType()
+	if err != nil {
+		return false, err
+	}
+	return di_type == DT_TUNNEL, nil
+}
+
 // Return the tunnel ID in this DeliveryInstructions or 0 and an error if the
 // DeliveryInstructions are not of type DT_TUNNEL.
 func (delivery_instructions DeliveryInstructions) TunnelID() (tunnel_id uint32, err error) {
-	di_type, err := delivery_instructions.DeliveryType()
+	has_tunnel_id, err := delivery_instructions.HasTunnelID()
 	if err != nil {
 		return
 	}
-	if di_type == DT_TUNNEL {
+	if has_tunnel_id {
 		if len(delivery_instructions) >= 5 {
 			tunnel_id = binary.BigEndian.Uint32(delivery_instructions[1:5])
 		} else {
@@ -576,5 +597,57 @@ func (delivery_instructions DeliveryInstructions) fragment_size_index() (fragmen
 }
 
 func readDeliveryInstructions(data []byte) (instructions DeliveryInstructions, remainder []byte, err error) {
+	if len(data) < 1 {
+		err = errors.New("no data provided")
+		return
+	}
+
+	di_flag := DeliveryInstructions(data[:1])
+	di_type, _ := di_flag.Type()
+	delivery_type, _ := di_flag.DeliveryType()
+
+	di_data := make([]byte, 0)
+
+	if di_type == FIRST_FRAGMENT {
+		// Add the Tunnel ID if present
+		if has_tunnel_id, _ := DeliveryInstructions(data).HasTunnelID(); has_tunnel_id {
+			_, err = DeliveryInstructions(data).TunnelID()
+			if err == nil {
+				di_data = append(di_data, data[1:5]...)
+			} else {
+				return
+			}
+		}
+
+		// Add the Hash if present
+		if _, err = DeliveryInstructions(data).Hash(); err == nil {
+			hash_start := 1
+			hash_end := 33
+			if delivery_type == DT_TUNNEL {
+				hash_start = hash_start + 4
+				hash_end = hash_end + 4
+			}
+			if err == nil {
+				di_data = append(di_data, data[hash_start:hash_end]...)
+			} else {
+				return
+			}
+		}
+
+		// get delay
+		// get message ID
+		// extended options
+		// add size
+	} else if di_type == FOLLOW_ON_FRAGMENT {
+		// get message ID
+		// add size
+	}
+
+	//delivery_type, _ := di_flag.DeliveryType()
+	//has_delay, _ := di_flag.HasDelay()
+	//fragmented, _ := di_flag.Fragmented()
+	//has_extended_options, _ := di_flag.HasExtendedOptions()
+	//has_tunnel_id, _ := di_flag.HasTunnelID()
+
 	return
 }
