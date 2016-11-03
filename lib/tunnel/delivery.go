@@ -596,6 +596,53 @@ func (delivery_instructions DeliveryInstructions) fragment_size_index() (fragmen
 	return fragment_size, nil
 }
 
+func maybeAppendTunnelID(data, current []byte) (now []byte, err error) {
+	if has_tunnel_id, _ := DeliveryInstructions(data).HasTunnelID(); has_tunnel_id {
+		_, err = DeliveryInstructions(data).TunnelID()
+		if err == nil {
+			now = append(current, data[1:5]...)
+		} else {
+			return
+		}
+	}
+	return
+}
+
+func maybeAppendHash(di_flag DeliveryInstructions, data, current []byte) (now []byte, err error) {
+	delivery_type, _ := di_flag.DeliveryType()
+	if _, err = DeliveryInstructions(data).Hash(); err == nil {
+		hash_start := 1
+		hash_end := 33
+		if delivery_type == DT_TUNNEL {
+			hash_start = hash_start + 4
+			hash_end = hash_end + 4
+		}
+		if err == nil {
+			now = append(current, data[hash_start:hash_end]...)
+		}
+	}
+	return
+}
+
+func maybeAppendDelay(di_flag DeliveryInstructions, data, current []byte) (now []byte, err error) {
+	return
+	//if has_delay, _ := di_flag.HasDelay(); has_delay {}
+}
+func maybeAppendMessageID(di_flag DeliveryInstructions, data, current []byte) (now []byte, err error) {
+	return
+}
+func maybeAppendExtendedOptions(di_flag DeliveryInstructions, data, current []byte) (now []byte, err error) {
+	return
+}
+func maybeAppendSize(di_flag DeliveryInstructions, data, current []byte) (now []byte, err error) {
+	return
+}
+
+//delivery_type, _ := di_flag.DeliveryType()
+//fragmented, _ := di_flag.Fragmented()
+//has_extended_options, _ := di_flag.HasExtendedOptions()
+//has_tunnel_id, _ := di_flag.HasTunnelID()
+
 func readDeliveryInstructions(data []byte) (instructions DeliveryInstructions, remainder []byte, err error) {
 	if len(data) < 1 {
 		err = errors.New("no data provided")
@@ -604,50 +651,39 @@ func readDeliveryInstructions(data []byte) (instructions DeliveryInstructions, r
 
 	di_flag := DeliveryInstructions(data[:1])
 	di_type, _ := di_flag.Type()
-	delivery_type, _ := di_flag.DeliveryType()
 
 	di_data := make([]byte, 0)
+	di_data = append(di_data, data[0])
 
 	if di_type == FIRST_FRAGMENT {
-		// Add the Tunnel ID if present
-		if has_tunnel_id, _ := DeliveryInstructions(data).HasTunnelID(); has_tunnel_id {
-			_, err = DeliveryInstructions(data).TunnelID()
-			if err == nil {
-				di_data = append(di_data, data[1:5]...)
-			} else {
-				return
-			}
+		di_data, err = maybeAppendTunnelID(data, di_data)
+		if err != nil {
+			return
 		}
-
-		// Add the Hash if present
-		if _, err = DeliveryInstructions(data).Hash(); err == nil {
-			hash_start := 1
-			hash_end := 33
-			if delivery_type == DT_TUNNEL {
-				hash_start = hash_start + 4
-				hash_end = hash_end + 4
-			}
-			if err == nil {
-				di_data = append(di_data, data[hash_start:hash_end]...)
-			} else {
-				return
-			}
+		di_data, err = maybeAppendHash(di_flag, data, di_data)
+		if err != nil {
+			return
 		}
-
-		// get delay
-		// get message ID
-		// extended options
-		// add size
+		di_data, err = maybeAppendDelay(di_flag, data, di_data)
+		if err != nil {
+			return
+		}
+		di_data, err = maybeAppendMessageID(di_flag, data, di_data)
+		if err != nil {
+			return
+		}
+		di_data, err = maybeAppendExtendedOptions(di_flag, data, di_data)
+		if err != nil {
+			return
+		}
+		di_data, err = maybeAppendSize(di_flag, data, di_data)
+		if err != nil {
+			return
+		}
 	} else if di_type == FOLLOW_ON_FRAGMENT {
 		// get message ID
 		// add size
 	}
-
-	//delivery_type, _ := di_flag.DeliveryType()
-	//has_delay, _ := di_flag.HasDelay()
-	//fragmented, _ := di_flag.Fragmented()
-	//has_extended_options, _ := di_flag.HasExtendedOptions()
-	//has_tunnel_id, _ := di_flag.HasTunnelID()
 
 	return
 }
