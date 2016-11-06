@@ -628,19 +628,25 @@ func maybeAppendDelay(di_flag DeliveryInstructions, data, current []byte) (now [
 	return
 	//if has_delay, _ := di_flag.HasDelay(); has_delay {}
 }
-func maybeAppendMessageID(di_flag DeliveryInstructions, data, current []byte) (now []byte, err error) {
+func maybeAppendMessageID(di_flag DeliveryInstructions, di_type int, data, current []byte) (now []byte, err error) {
+	if di_type == FIRST_FRAGMENT {
+	} else if di_type == FOLLOW_ON_FRAGMENT {
+	}
 	return
 }
 func maybeAppendExtendedOptions(di_flag DeliveryInstructions, data, current []byte) (now []byte, err error) {
+	//has_extended_options, _ := di_flag.HasExtendedOptions()
 	return
 }
-func maybeAppendSize(di_flag DeliveryInstructions, data, current []byte) (now []byte, err error) {
+func maybeAppendSize(di_flag DeliveryInstructions, di_type int, data, current []byte) (now []byte, err error) {
+	if di_type == FIRST_FRAGMENT {
+	} else if di_type == FOLLOW_ON_FRAGMENT {
+	}
 	return
 }
 
 //delivery_type, _ := di_flag.DeliveryType()
 //fragmented, _ := di_flag.Fragmented()
-//has_extended_options, _ := di_flag.HasExtendedOptions()
 //has_tunnel_id, _ := di_flag.HasTunnelID()
 
 func readDeliveryInstructions(data []byte) (instructions DeliveryInstructions, remainder []byte, err error) {
@@ -668,7 +674,7 @@ func readDeliveryInstructions(data []byte) (instructions DeliveryInstructions, r
 		if err != nil {
 			return
 		}
-		di_data, err = maybeAppendMessageID(di_flag, data, di_data)
+		di_data, err = maybeAppendMessageID(di_flag, di_type, data, di_data)
 		if err != nil {
 			return
 		}
@@ -676,13 +682,19 @@ func readDeliveryInstructions(data []byte) (instructions DeliveryInstructions, r
 		if err != nil {
 			return
 		}
-		di_data, err = maybeAppendSize(di_flag, data, di_data)
+		di_data, err = maybeAppendSize(di_flag, di_type, data, di_data)
 		if err != nil {
 			return
 		}
 	} else if di_type == FOLLOW_ON_FRAGMENT {
-		// get message ID
-		// add size
+		di_data, err = maybeAppendMessageID(di_flag, di_type, data, di_data)
+		if err != nil {
+			return
+		}
+		di_data, err = maybeAppendSize(di_flag, di_type, data, di_data)
+		if err != nil {
+			return
+		}
 	}
 
 	return
