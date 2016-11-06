@@ -630,7 +630,29 @@ func maybeAppendDelay(di_flag DeliveryInstructions, data, current []byte) (now [
 }
 func maybeAppendMessageID(di_flag DeliveryInstructions, di_type int, data, current []byte) (now []byte, err error) {
 	if di_type == FIRST_FRAGMENT {
+		if fragmented, _ := di_flag.Fragmented(); fragmented {
+			message_id_index := 1
+			if dtype, _ := di_flag.DeliveryType(); dtype == DT_TUNNEL {
+				message_id_index += 4
+			}
+			if dtype, _ := di_flag.DeliveryType(); dtype == DT_TUNNEL || dtype == DT_ROUTER {
+				message_id_index += 32
+			}
+			if delay, _ := di_flag.HasDelay(); delay {
+				message_id_index += 1
+			}
+			if len(data) < message_id_index+4 {
+				err = errors.New("data is too short to contain message ID in FIRST_FRAGMENT")
+			} else {
+				now = append(current, data[message_id_index:message_id_index+4]...)
+			}
+		}
 	} else if di_type == FOLLOW_ON_FRAGMENT {
+		if len(data) < 5 {
+			err = errors.New("data is too short to contain message ID in FOLLOW_ON_FRAGMENT")
+		} else {
+			now = append(current, data[1:5]...)
+		}
 	}
 	return
 }
@@ -641,12 +663,16 @@ func maybeAppendExtendedOptions(di_flag DeliveryInstructions, data, current []by
 func maybeAppendSize(di_flag DeliveryInstructions, di_type int, data, current []byte) (now []byte, err error) {
 	if di_type == FIRST_FRAGMENT {
 	} else if di_type == FOLLOW_ON_FRAGMENT {
+		if len(data) < 7 {
+			err = errors.New("data is too short to contain size data")
+		} else {
+			now = append(now, data[5:7]...)
+		}
 	}
 	return
 }
 
 //delivery_type, _ := di_flag.DeliveryType()
-//fragmented, _ := di_flag.Fragmented()
 //has_tunnel_id, _ := di_flag.HasTunnelID()
 
 func readDeliveryInstructions(data []byte) (instructions DeliveryInstructions, remainder []byte, err error) {
@@ -696,6 +722,8 @@ func readDeliveryInstructions(data []byte) (instructions DeliveryInstructions, r
 			return
 		}
 	}
+
+	remainder = data[len(di_data):]
 
 	return
 }
