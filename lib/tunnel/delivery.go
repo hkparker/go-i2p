@@ -625,8 +625,20 @@ func maybeAppendHash(di_flag DeliveryInstructions, data, current []byte) (now []
 }
 
 func maybeAppendDelay(di_flag DeliveryInstructions, data, current []byte) (now []byte, err error) {
+	delivery_type, _ := di_flag.DeliveryType()
+	if _, err = DeliveryInstructions(data).Hash(); err == nil {
+		delay_start := 1
+		if delivery_type == DT_TUNNEL {
+			delay_start = delay_start + 4
+		}
+		if hash, _ := di_flag.Hash(); len(hash) == 32 {
+			delay_start = delay_start + 32
+		}
+		if err == nil {
+			now = append(current, data[delay_start])
+		}
+	}
 	return
-	//if has_delay, _ := di_flag.HasDelay(); has_delay {}
 }
 func maybeAppendMessageID(di_flag DeliveryInstructions, di_type int, data, current []byte) (now []byte, err error) {
 	if di_type == FIRST_FRAGMENT {
@@ -656,10 +668,15 @@ func maybeAppendMessageID(di_flag DeliveryInstructions, di_type int, data, curre
 	}
 	return
 }
+
 func maybeAppendExtendedOptions(di_flag DeliveryInstructions, data, current []byte) (now []byte, err error) {
-	//has_extended_options, _ := di_flag.HasExtendedOptions()
+	if index, err := DeliveryInstructions(data).extended_options_index(); err != nil {
+		extended_options_length := common.Integer([]byte{data[index]})
+		now = append(current, data[index:index+extended_options_length]...)
+	}
 	return
 }
+
 func maybeAppendSize(di_flag DeliveryInstructions, di_type int, data, current []byte) (now []byte, err error) {
 	if di_type == FIRST_FRAGMENT {
 	} else if di_type == FOLLOW_ON_FRAGMENT {
