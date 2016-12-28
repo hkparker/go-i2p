@@ -337,7 +337,7 @@ func (delivery_instructions DeliveryInstructions) Hash() (hash common.Hash, err 
 			err = errors.New("DeliveryInstructions is invalid, not contain enough data for hash given type DT_ROUTER")
 		}
 	} else {
-		err = errors.New("No Hash on DeliveryInstructions not of type DT_TUNNEL or DT_ROUTER")
+		//err = errors.New("No Hash on DeliveryInstructions not of type DT_TUNNEL or DT_ROUTER")
 	}
 	return
 }
@@ -679,6 +679,10 @@ func maybeAppendExtendedOptions(di_flag DeliveryInstructions, data, current []by
 
 func maybeAppendSize(di_flag DeliveryInstructions, di_type int, data, current []byte) (now []byte, err error) {
 	if di_type == FIRST_FRAGMENT {
+		if index, err := DeliveryInstructions(data).extended_options_index(); err != nil {
+			extended_options_length := common.Integer([]byte{data[index]})
+			now = append(current, data[index+extended_options_length:index+extended_options_length+2]...)
+		}
 	} else if di_type == FOLLOW_ON_FRAGMENT {
 		if len(data) < 7 {
 			err = errors.New("data is too short to contain size data")
@@ -688,9 +692,6 @@ func maybeAppendSize(di_flag DeliveryInstructions, di_type int, data, current []
 	}
 	return
 }
-
-//delivery_type, _ := di_flag.DeliveryType()
-//has_tunnel_id, _ := di_flag.HasTunnelID()
 
 func readDeliveryInstructions(data []byte) (instructions DeliveryInstructions, remainder []byte, err error) {
 	if len(data) < 1 {
