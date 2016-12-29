@@ -292,6 +292,25 @@ func (delivery_instructions DeliveryInstructions) HasTunnelID() (bool, error) {
 	return di_type == DT_TUNNEL, nil
 }
 
+func (delivery_instructions DeliveryInstructions) HasHash() (bool, error) {
+	di_type, err := delivery_instructions.DeliveryType()
+	if err != nil {
+		return false, err
+	}
+	if di_type == DT_TUNNEL || di_type == DT_ROUTER {
+		min_size := 33
+		if di_type == DT_TUNNEL {
+			min_size += 4
+		}
+		if len(delivery_instructions) < min_size {
+			return false, errors.New("Delivery Instructions indicates hash present but has too little data")
+		}
+	} else {
+		return false, nil
+	}
+	return true, nil
+}
+
 // Return the tunnel ID in this DeliveryInstructions or 0 and an error if the
 // DeliveryInstructions are not of type DT_TUNNEL.
 func (delivery_instructions DeliveryInstructions) TunnelID() (tunnel_id uint32, err error) {
@@ -337,7 +356,7 @@ func (delivery_instructions DeliveryInstructions) Hash() (hash common.Hash, err 
 			err = errors.New("DeliveryInstructions is invalid, not contain enough data for hash given type DT_ROUTER")
 		}
 	} else {
-		//err = errors.New("No Hash on DeliveryInstructions not of type DT_TUNNEL or DT_ROUTER")
+		err = errors.New("No Hash on DeliveryInstructions not of type DT_TUNNEL or DT_ROUTER")
 	}
 	return
 }
@@ -610,7 +629,7 @@ func maybeAppendTunnelID(data, current []byte) (now []byte, err error) {
 
 func maybeAppendHash(di_flag DeliveryInstructions, data, current []byte) (now []byte, err error) {
 	delivery_type, _ := di_flag.DeliveryType()
-	if _, err = DeliveryInstructions(data).Hash(); err == nil {
+	if _, err := DeliveryInstructions(data).HasHash(); err == nil {
 		hash_start := 1
 		hash_end := 33
 		if delivery_type == DT_TUNNEL {
@@ -626,7 +645,7 @@ func maybeAppendHash(di_flag DeliveryInstructions, data, current []byte) (now []
 
 func maybeAppendDelay(di_flag DeliveryInstructions, data, current []byte) (now []byte, err error) {
 	delivery_type, _ := di_flag.DeliveryType()
-	if _, err = DeliveryInstructions(data).Hash(); err == nil {
+	if _, err = DeliveryInstructions(data).HasHash(); err == nil {
 		delay_start := 1
 		if delivery_type == DT_TUNNEL {
 			delay_start = delay_start + 4
