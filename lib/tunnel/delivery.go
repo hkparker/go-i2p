@@ -135,6 +135,16 @@ const (
 	FOLLOW_ON_FRAGMENT
 )
 
+const (
+	FLAG_SIZE                 = 1
+	TUNNEL_ID_SIZE            = 4
+	HASH_SIZE                 = 32
+	DELAY_SIZE                = 1
+	MESSAGE_ID_SIZE           = 4
+	EXTENDED_OPTIONS_MIN_SIZE = 2
+	SIZE_FIELD_SIZE           = 2
+)
+
 type DelayFactor byte
 
 type DeliveryInstructions []byte
@@ -298,9 +308,9 @@ func (delivery_instructions DeliveryInstructions) HasHash() (bool, error) {
 		return false, err
 	}
 	if di_type == DT_TUNNEL || di_type == DT_ROUTER {
-		min_size := 33
+		min_size := FLAG_SIZE + HASH_SIZE
 		if di_type == DT_TUNNEL {
-			min_size += 4
+			min_size += TUNNEL_ID_SIZE
 		}
 		if len(delivery_instructions) < min_size {
 			return false, errors.New("Delivery Instructions indicates hash present but has too little data")
@@ -319,8 +329,8 @@ func (delivery_instructions DeliveryInstructions) TunnelID() (tunnel_id uint32, 
 		return
 	}
 	if has_tunnel_id {
-		if len(delivery_instructions) >= 5 {
-			tunnel_id = binary.BigEndian.Uint32(delivery_instructions[1:5])
+		if len(delivery_instructions) >= FLAG_SIZE+TUNNEL_ID_SIZE {
+			tunnel_id = binary.BigEndian.Uint32(delivery_instructions[FLAG_SIZE:TUNNEL_ID_SIZE])
 		} else {
 			err = errors.New("DeliveryInstructions are invalid, too little data for Tunnel ID")
 		}
@@ -338,12 +348,11 @@ func (delivery_instructions DeliveryInstructions) Hash() (hash common.Hash, err 
 	if err != nil {
 		return
 	}
-	hash_start := 1
-	hash_end := 33
+	hash_start := FLAG_SIZE
+	hash_end := FLAG_SIZE + HASH_SIZE
 	if delivery_type == DT_TUNNEL {
-		// add 4 bytes for DT_TUNNEL's TunnelID
-		hash_start := hash_start + 4
-		hash_end := hash_end + 4
+		hash_start := hash_start + TUNNEL_ID_SIZE
+		hash_end := hash_end + TUNNEL_ID_SIZE
 		if len(delivery_instructions) >= hash_end {
 			copy(hash[:], delivery_instructions[hash_start:hash_end])
 		} else {
@@ -374,15 +383,15 @@ func (delivery_instructions DeliveryInstructions) Delay() (delay_factor DelayFac
 			return
 		}
 		if di_type == DT_TUNNEL {
-			if len(delivery_instructions) >= 37 {
-				delay_factor = DelayFactor(delivery_instructions[37])
+			if len(delivery_instructions) >= FLAG_SIZE+TUNNEL_ID_SIZE+HASH_SIZE {
+				delay_factor = DelayFactor(delivery_instructions[FLAG_SIZE+TUNNEL_ID_SIZE+HASH_SIZE])
 			} else {
 				err = errors.New("DeliveryInstructions is invalid, does not contain enough data for DelayFactor")
 				return
 			}
 		} else if di_type == DT_ROUTER {
-			if len(delivery_instructions) >= 36 {
-				delay_factor = DelayFactor(delivery_instructions[36])
+			if len(delivery_instructions) >= FLAG_SIZE+HASH_SIZE {
+				delay_factor = DelayFactor(delivery_instructions[FLAG_SIZE+HASH_SIZE])
 			} else {
 				err = errors.New("DeliveryInstructions is invalid, does not contain enough data for DelayFactor")
 				return

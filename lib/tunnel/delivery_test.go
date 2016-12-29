@@ -30,17 +30,20 @@ func validFirstFragmentDeliveryInstructions() []byte {
 		FirstFragment: true,
 		Type:          0x02,
 		Delay:         false,
-	}.FlagByte()
-	data = append(data, flag)
+	}
+	data = append(data, flag.FlagByte())
 
 	tunnel_id := []byte{0x00, 0x00, 0x00, 0x01}
 	data = append(data, tunnel_id...)
 
-	hash := make([]byte, 32)
+	hash := make([]byte, HASH_SIZE)
 	data = append(data, hash...)
 
-	// Add 0 delay
-	data = append(data, 0)
+	if flag.Delay {
+		data = append(data, 1)
+	} else {
+		data = append(data, 0)
+	}
 
 	message_id := []byte{0x00, 0x00, 0x00, 0x02}
 	data = append(data, message_id...)
