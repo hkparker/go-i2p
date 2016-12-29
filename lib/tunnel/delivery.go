@@ -178,13 +178,51 @@ func (delivery_instructions DeliveryInstructions) Type() (int, error) {
 // Read the integer stored in the 6-1 bits of a FOLLOW_ON_FRAGMENT's flag, indicating
 // the fragment number.
 func (delivery_instructions DeliveryInstructions) FragmentNumber() (int, error) {
-	return 0, nil
+	di_type, err := delivery_instructions.Type()
+	if err != nil {
+		return 0, err
+	}
+	/*
+	 Read the 6-1 bits of the Delivery Instructions
+	 to determine the FragmentNumber of Follow On Fragments
+
+	      xnnnnnnx
+	     &01111110    bit shift
+	     ---------
+	      0??????0       >> 1   =>   Integer(??????)
+	*/
+	if di_type == FOLLOW_ON_FRAGMENT {
+		return common.Integer(
+			[]byte{((delivery_instructions[0] & 0x7e) >> 1)},
+		), nil
+	}
+	return 0, errors.New("Fragment Number only exists on FOLLOW_ON_FRAGMENT Delivery Instructions")
 }
 
 // Read the value of the 0 bit of a FOLLOW_ON_FRAGMENT, which is set to 1 to indicate the
 // last fragment.
 func (delivery_instructions DeliveryInstructions) LastFollowOnFragment() (bool, error) {
-	return true, nil
+	di_type, err := delivery_instructions.Type()
+	if err != nil {
+		return false, err
+	}
+	/*
+	 Check the 0 bit of the Delivery Instructions
+	 to determine if this is the last Follow On Fragment
+
+	      xxxxxxxx
+	     &00000001
+	     ---------
+	      0000000?   =>  n
+	*/
+	if di_type == FOLLOW_ON_FRAGMENT {
+		if delivery_instructions[0]&0x01 == 0x01 {
+			return true, nil
+		} else {
+			return false, nil
+		}
+	}
+	return false, errors.New("Last Fragment only exists for FOLLOW_ON_FRAGMENT Delivery Instructions")
 }
 
 // Return the delivery type for these DeliveryInstructions, can be of type
