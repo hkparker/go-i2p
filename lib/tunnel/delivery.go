@@ -135,6 +135,16 @@ const (
 	FOLLOW_ON_FRAGMENT
 )
 
+const (
+	FLAG_SIZE                 = 1
+	TUNNEL_ID_SIZE            = 4
+	HASH_SIZE                 = 32
+	DELAY_SIZE                = 1
+	MESSAGE_ID_SIZE           = 4
+	EXTENDED_OPTIONS_MIN_SIZE = 2
+	SIZE_FIELD_SIZE           = 2
+)
+
 type DelayFactor byte
 
 type DeliveryInstructions []byte
@@ -168,13 +178,51 @@ func (delivery_instructions DeliveryInstructions) Type() (int, error) {
 // Read the integer stored in the 6-1 bits of a FOLLOW_ON_FRAGMENT's flag, indicating
 // the fragment number.
 func (delivery_instructions DeliveryInstructions) FragmentNumber() (int, error) {
-	return 0, nil
+	di_type, err := delivery_instructions.Type()
+	if err != nil {
+		return 0, err
+	}
+	/*
+	 Read the 6-1 bits of the Delivery Instructions
+	 to determine the FragmentNumber of Follow On Fragments
+
+	      xnnnnnnx
+	     &01111110    bit shift
+	     ---------
+	      0??????0       >> 1   =>   Integer(??????)
+	*/
+	if di_type == FOLLOW_ON_FRAGMENT {
+		return common.Integer(
+			[]byte{((delivery_instructions[0] & 0x7e) >> 1)},
+		), nil
+	}
+	return 0, errors.New("Fragment Number only exists on FOLLOW_ON_FRAGMENT Delivery Instructions")
 }
 
 // Read the value of the 0 bit of a FOLLOW_ON_FRAGMENT, which is set to 1 to indicate the
 // last fragment.
 func (delivery_instructions DeliveryInstructions) LastFollowOnFragment() (bool, error) {
-	return true, nil
+	di_type, err := delivery_instructions.Type()
+	if err != nil {
+		return false, err
+	}
+	/*
+	 Check the 0 bit of the Delivery Instructions
+	 to determine if this is the last Follow On Fragment
+
+	      xxxxxxxx
+	     &00000001
+	     ---------
+	      0000000?   =>  n
+	*/
+	if di_type == FOLLOW_ON_FRAGMENT {
+		if delivery_instructions[0]&0x01 == 0x01 {
+			return true, nil
+		} else {
+			return false, nil
+		}
+	}
+	return false, errors.New("Last Fragment only exists for FOLLOW_ON_FRAGMENT Delivery Instructions")
 }
 
 // Return the delivery type for these DeliveryInstructions, can be of type
@@ -292,6 +340,25 @@ func (delivery_instructions DeliveryInstructions) HasTunnelID() (bool, error) {
 	return di_type == DT_TUNNEL, nil
 }
 
+func (delivery_instructions DeliveryInstructions) HasHash() (bool, error) {
+	di_type, err := delivery_instructions.DeliveryType()
+	if err != nil {
+		return false, err
+	}
+	if di_type == DT_TUNNEL || di_type == DT_ROUTER {
+		min_size := FLAG_SIZE + HASH_SIZE
+		if di_type == DT_TUNNEL {
+			min_size += TUNNEL_ID_SIZE
+		}
+		if len(delivery_instructions) < min_size {
+			return false, errors.New("Delivery Instructions indicates hash present but has too little data")
+		}
+	} else {
+		return false, nil
+	}
+	return true, nil
+}
+
 // Return the tunnel ID in this DeliveryInstructions or 0 and an error if the
 // DeliveryInstructions are not of type DT_TUNNEL.
 func (delivery_instructions DeliveryInstructions) TunnelID() (tunnel_id uint32, err error) {
@@ -300,8 +367,8 @@ func (delivery_instructions DeliveryInstructions) TunnelID() (tunnel_id uint32, 
 		return
 	}
 	if has_tunnel_id {
-		if len(delivery_instructions) >= 5 {
-			tunnel_id = binary.BigEndian.Uint32(delivery_instructions[1:5])
+		if len(delivery_instructions) >= FLAG_SIZE+TUNNEL_ID_SIZE {
+			tunnel_id = binary.BigEndian.Uint32(delivery_instructions[FLAG_SIZE:TUNNEL_ID_SIZE])
 		} else {
 			err = errors.New("DeliveryInstructions are invalid, too little data for Tunnel ID")
 		}
@@ -319,12 +386,11 @@ func (delivery_instructions DeliveryInstructions) Hash() (hash common.Hash, err 
 	if err != nil {
 		return
 	}
-	hash_start := 1
-	hash_end := 33
+	hash_start := FLAG_SIZE
+	hash_end := FLAG_SIZE + HASH_SIZE
 	if delivery_type == DT_TUNNEL {
-		// add 4 bytes for DT_TUNNEL's TunnelID
-		hash_start := hash_start + 4
-		hash_end := hash_end + 4
+		hash_start := hash_start + TUNNEL_ID_SIZE
+		hash_end := hash_end + TUNNEL_ID_SIZE
 		if len(delivery_instructions) >= hash_end {
 			copy(hash[:], delivery_instructions[hash_start:hash_end])
 		} else {
@@ -355,15 +421,15 @@ func (delivery_instructions DeliveryInstructions) Delay() (delay_factor DelayFac
 			return
 		}
 		if di_type == DT_TUNNEL {
-			if len(delivery_instructions) >= 37 {
-				delay_factor = DelayFactor(delivery_instructions[37])
+			if len(delivery_instructions) >= FLAG_SIZE+TUNNEL_ID_SIZE+HASH_SIZE {
+				delay_factor = DelayFactor(delivery_instructions[FLAG_SIZE+TUNNEL_ID_SIZE+HASH_SIZE])
 			} else {
 				err = errors.New("DeliveryInstructions is invalid, does not contain enough data for DelayFactor")
 				return
 			}
 		} else if di_type == DT_ROUTER {
-			if len(delivery_instructions) >= 36 {
-				delay_factor = DelayFactor(delivery_instructions[36])
+			if len(delivery_instructions) >= FLAG_SIZE+HASH_SIZE {
+				delay_factor = DelayFactor(delivery_instructions[FLAG_SIZE+HASH_SIZE])
 			} else {
 				err = errors.New("DeliveryInstructions is invalid, does not contain enough data for DelayFactor")
 				return
@@ -610,7 +676,7 @@ func maybeAppendTunnelID(data, current []byte) (now []byte, err error) {
 
 func maybeAppendHash(di_flag DeliveryInstructions, data, current []byte) (now []byte, err error) {
 	delivery_type, _ := di_flag.DeliveryType()
-	if _, err = DeliveryInstructions(data).Hash(); err == nil {
+	if _, err := DeliveryInstructions(data).HasHash(); err == nil {
 		hash_start := 1
 		hash_end := 33
 		if delivery_type == DT_TUNNEL {
@@ -625,8 +691,20 @@ func maybeAppendHash(di_flag DeliveryInstructions, data, current []byte) (now []
 }
 
 func maybeAppendDelay(di_flag DeliveryInstructions, data, current []byte) (now []byte, err error) {
+	delivery_type, _ := di_flag.DeliveryType()
+	if _, err = DeliveryInstructions(data).HasHash(); err == nil {
+		delay_start := 1
+		if delivery_type == DT_TUNNEL {
+			delay_start = delay_start + 4
+		}
+		if hash, _ := di_flag.Hash(); len(hash) == 32 {
+			delay_start = delay_start + 32
+		}
+		if err == nil {
+			now = append(current, data[delay_start])
+		}
+	}
 	return
-	//if has_delay, _ := di_flag.HasDelay(); has_delay {}
 }
 func maybeAppendMessageID(di_flag DeliveryInstructions, di_type int, data, current []byte) (now []byte, err error) {
 	if di_type == FIRST_FRAGMENT {
@@ -656,12 +734,21 @@ func maybeAppendMessageID(di_flag DeliveryInstructions, di_type int, data, curre
 	}
 	return
 }
+
 func maybeAppendExtendedOptions(di_flag DeliveryInstructions, data, current []byte) (now []byte, err error) {
-	//has_extended_options, _ := di_flag.HasExtendedOptions()
+	if index, err := DeliveryInstructions(data).extended_options_index(); err != nil {
+		extended_options_length := common.Integer([]byte{data[index]})
+		now = append(current, data[index:index+extended_options_length]...)
+	}
 	return
 }
+
 func maybeAppendSize(di_flag DeliveryInstructions, di_type int, data, current []byte) (now []byte, err error) {
 	if di_type == FIRST_FRAGMENT {
+		if index, err := DeliveryInstructions(data).extended_options_index(); err != nil {
+			extended_options_length := common.Integer([]byte{data[index]})
+			now = append(current, data[index+extended_options_length:index+extended_options_length+2]...)
+		}
 	} else if di_type == FOLLOW_ON_FRAGMENT {
 		if len(data) < 7 {
 			err = errors.New("data is too short to contain size data")
@@ -671,9 +758,6 @@ func maybeAppendSize(di_flag DeliveryInstructions, di_type int, data, current []
 	}
 	return
 }
-
-//delivery_type, _ := di_flag.DeliveryType()
-//has_tunnel_id, _ := di_flag.HasTunnelID()
 
 func readDeliveryInstructions(data []byte) (instructions DeliveryInstructions, remainder []byte, err error) {
 	if len(data) < 1 {
