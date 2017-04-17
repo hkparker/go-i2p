@@ -82,3 +82,16 @@ func TestReadRouterAddressReturnsCorrectRemainderWithoutError(t *testing.T) {
 	assert.Nil(err, "checkValid() on address from ReadRouterAddress() reported error with valid data")
 	assert.Equal(exit, false, "checkValid() on address from ReadRouterAddress() indicated to stop parsing valid data")
 }
+
+func TestCorrectsFuzzCrasher1(t *testing.T) {
+	assert := assert.New(t)
+
+	defer func() {
+		if r := recover(); r != nil {
+			assert.Equal(nil, r)
+		}
+	}()
+
+	router_address_bytes := []byte{0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x00, 0x30, 0x30}
+	ReadRouterAddress(router_address_bytes)
+}

@@ -1,0 +1,6 @@
+keys_and_cert: go-fuzz -bin=keys_and_cert/exportable-fuzz.zip -workdir=lib/common/fuzz/keys_and_cert -procs=2
+certificate: go-fuzz -bin=certificate/exportable-fuzz.zip -workdir=lib/common/fuzz/certificate -procs=2
+destination: go-fuzz -bin=destination/exportable-fuzz.zip -workdir=lib/common/fuzz/destination -procs=2
+router_address: go-fuzz -bin=router_address/exportable-fuzz.zip -workdir=lib/common/fuzz/router_address -procs=2
+router_identity: go-fuzz -bin=router_identity/exportable-fuzz.zip -workdir=lib/common/fuzz/router_identity -procs=2
+string: go-fuzz -bin=string/exportable-fuzz.zip -workdir=lib/common/fuzz/string -procs=2

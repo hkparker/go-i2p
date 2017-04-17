@@ -146,9 +146,16 @@ func ReadRouterAddress(data []byte) (router_address RouterAddress, remainder []b
 	mapping := make([]byte, 0)
 	if len(remainder) >= 2 {
 		map_size = Integer(remainder[:2])
+		if len(remainder) < map_size+2 {
+			err = errors.New("not enough data for map inside router address")
+			router_address = RouterAddress([]byte{})
+			remainder = []byte{}
+			return
+		}
 		mapping = remainder[:map_size+2]
 		router_address = append(router_address, mapping...)
 	}
+
 	remainder = data[ROUTER_ADDRESS_MIN_SIZE+len(str)+len(mapping):]
 	return
 }

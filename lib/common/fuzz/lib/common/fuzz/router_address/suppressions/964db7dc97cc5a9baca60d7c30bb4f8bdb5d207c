@@ -1,0 +1,6 @@
+panic: runtime error: slice bounds out of range
+panic
+github.com/hkparker/go-i2p/lib/common.ReadRouterAddress
+github.com/hkparker/go-i2p/lib/common/fuzz/router_address.Fuzz
+go-fuzz-dep.Main
+main.main
