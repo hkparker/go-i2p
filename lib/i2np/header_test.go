@@ -38,18 +38,34 @@ func TestReadI2NPNTCPMessageIDWithValidData(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestReadI2NPNTCPMessageDateWithMissingData(t *testing.T) {
+func TestReadI2NPNTCPMessageExpirationWithMissingData(t *testing.T) {
 	assert := assert.New(t)
 
-	date, err := ReadI2NPNTCPMessageDate([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
+	date, err := ReadI2NPNTCPMessageExpiration([]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00})
 	assert.Equal(common.Date{}, date)
 	assert.Equal(ERR_I2NP_NOT_ENOUGH_DATA, err)
 }
 
-func TestReadI2NPNTCPMessageDateWithValidData(t *testing.T) {
+func TestReadI2NPNTCPMessageExpirationWithValidData(t *testing.T) {
 	assert := assert.New(t)
 
-	date, err := ReadI2NPNTCPMessageDate([]byte{0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x05, 0x26, 0x5c, 0x00})
+	date, err := ReadI2NPNTCPMessageExpiration([]byte{0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x05, 0x26, 0x5c, 0x00})
+	assert.Equal(int64(86400), date.Time().Unix())
+	assert.Nil(err)
+}
+
+func TestReadI2NPSSUMessageExpirationWithMissingData(t *testing.T) {
+	assert := assert.New(t)
+
+	date, err := ReadI2NPSSUMessageExpiration([]byte{0x00, 0x00, 0x00, 0x00})
+	assert.Equal(common.Date{}, date)
+	assert.Equal(ERR_I2NP_NOT_ENOUGH_DATA, err)
+}
+
+func TestReadI2NPSSUMessageExpirationWithValidData(t *testing.T) {
+	assert := assert.New(t)
+
+	date, err := ReadI2NPSSUMessageExpiration([]byte{0x01, 0x05, 0x26, 0x5c, 0x00})
 	assert.Equal(int64(86400), date.Time().Unix())
 	assert.Nil(err)
 }
@@ -83,5 +99,37 @@ func TestReadI2NPNTCPMessageChecksumWithValidData(t *testing.T) {
 
 	checksum, err := ReadI2NPNTCPMessageChecksum([]byte{0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x05, 0x26, 0x5c, 0x00, 0x00, 0x01, 0x01})
 	assert.Equal(1, checksum)
+	assert.Nil(err)
+}
+
+func TestReadI2NPNTCPDataWithNoData(t *testing.T) {
+	assert := assert.New(t)
+
+	data, err := ReadI2NPNTCPData([]byte{}, 3)
+	assert.Equal([]byte{}, data)
+	assert.Equal(ERR_I2NP_NOT_ENOUGH_DATA, err)
+}
+
+func TestReadI2NPNTCPDataWithMissingData(t *testing.T) {
+	assert := assert.New(t)
+
+	data, err := ReadI2NPNTCPData([]byte{0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x05, 0x26, 0x5c, 0x00, 0x00, 0x03, 0x01, 0x01, 0x02}, 3)
+	assert.Equal([]byte{}, data)
+	assert.Equal(ERR_I2NP_NOT_ENOUGH_DATA, err)
+}
+
+func TestReadI2NPNTCPDataWithExtraData(t *testing.T) {
+	assert := assert.New(t)
+
+	data, err := ReadI2NPNTCPData([]byte{0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x05, 0x26, 0x5c, 0x00, 0x00, 0x03, 0x01, 0x01, 0x02, 0x03, 0x04}, 3)
+	assert.Equal([]byte{0x01, 0x02, 0x03}, data)
+	assert.Nil(err)
+}
+
+func TestReadI2NPNTCPDataWithValidData(t *testing.T) {
+	assert := assert.New(t)
+
+	data, err := ReadI2NPNTCPData([]byte{0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x05, 0x26, 0x5c, 0x00, 0x00, 0x03, 0x01, 0x01, 0x02, 0x03}, 3)
+	assert.Equal([]byte{0x01, 0x02, 0x03}, data)
 	assert.Nil(err)
 }
