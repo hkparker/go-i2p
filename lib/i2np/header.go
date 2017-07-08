@@ -138,8 +138,7 @@ func ReadI2NPNTCPHeader(data []byte) (I2NPNTCPHeader, error) {
 	}
 
 	log.WithFields(log.Fields{
-		"at":    "i2np.ReadI2NPNTCPHeader",
-		"error": err.Error(),
+		"at": "i2np.ReadI2NPNTCPHeader",
 	}).Debug("parsed_i2np_ntcp_header")
 	return header, nil
 }

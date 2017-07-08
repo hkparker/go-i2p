@@ -1,0 +1,5 @@
+panic: runtime error: invalid memory address or nil pointer dereference
+github.com/hkparker/go-i2p/lib/i2np.ReadI2NPNTCPHeader
+github.com/hkparker/go-i2p/lib/i2np/fuzz/header.Fuzz
+go-fuzz-dep.Main
+main.main
