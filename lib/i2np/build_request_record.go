@@ -230,7 +230,7 @@ func ReadBuildRequestRecord(data []byte) (BuildRequestRecord, error) {
 	}
 	build_request_record.RequestTime = request_time
 
-	send_message_id, err := readBuildRequestRecordRequestSendMessageID(data)
+	send_message_id, err := readBuildRequestRecordSendMessageID(data)
 	if err != nil {
 		return build_request_record, err
 	}
@@ -389,7 +389,7 @@ func readBuildRequestRecordRequestTime(data []byte) (time.Time, error) {
 	return rtime, nil
 }
 
-func readBuildRequestRecordRequestSendMessageID(data []byte) (int, error) {
+func readBuildRequestRecordSendMessageID(data []byte) (int, error) {
 	if len(data) < 193 {
 		return 0, ERR_BUILD_REQUEST_RECORD_NOT_ENOUGH_DATA
 	}
