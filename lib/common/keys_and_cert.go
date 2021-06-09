@@ -47,7 +47,7 @@ total length: 387+ bytes
 
 import (
 	"errors"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/hkparker/go-i2p/lib/crypto"
 )
 
