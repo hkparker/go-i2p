@@ -37,7 +37,7 @@ options :: Mapping
 
 import (
 	"errors"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // Minimum number of bytes in a valid RouterAddress

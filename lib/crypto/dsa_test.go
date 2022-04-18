@@ -2,7 +2,7 @@ package crypto
 
 import (
 	"crypto/rand"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"testing"
 )

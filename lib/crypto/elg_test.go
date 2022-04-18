@@ -3,7 +3,7 @@ package crypto
 import (
 	"bytes"
 	"crypto/rand"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/openpgp/elgamal"
 	"io"
 	"testing"

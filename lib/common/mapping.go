@@ -28,7 +28,7 @@ val_string :: String
 import (
 	"encoding/binary"
 	"errors"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"sort"
 )
 

@@ -2,7 +2,7 @@ package i2np
 
 import (
 	"errors"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/hkparker/go-i2p/lib/common"
 	"time"
 )

@@ -3,7 +3,7 @@ package netdb
 import (
 	"bytes"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/hkparker/go-i2p/lib/bootstrap"
 	"github.com/hkparker/go-i2p/lib/common"
 	"github.com/hkparker/go-i2p/lib/common/base64"

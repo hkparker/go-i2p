@@ -8,7 +8,7 @@ Accurate for version 0.9.24
 
 import (
 	"errors"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // Maximum number of bytes that can be stored in an I2P string

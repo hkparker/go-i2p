@@ -28,7 +28,7 @@ payload :: data
 
 import (
 	"errors"
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // Certificate Types
